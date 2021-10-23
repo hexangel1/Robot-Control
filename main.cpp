@@ -103,6 +103,7 @@ static GLFWwindow *setupGL(void)
                 fputs("Failed to initialize GLEW\n", stderr);
                 return 0;
         }
+        // add some comments
         glEnable(GL_MULTISAMPLE);
         fprintf(stderr, "Vendor: %s\n", glGetString(GL_VENDOR));
         fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
