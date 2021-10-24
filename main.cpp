@@ -18,14 +18,16 @@ struct InputState {
 
 static InputState Input;
 
-static const GLuint window_width = 1920;
-static const GLuint window_height = 1000;
+static const char title[] = "Robot Control Simulator";
+static const int window_width = 1920;
+static const int window_height = 1000;
 
 static void gl_check_errors(void)
 {
         GLenum gl_error = glGetError();
         if (gl_error != GL_NO_ERROR) {
-                fprintf(stderr, "OpenGL error: %d\n", gl_error);
+                fprintf(stderr, "Runtime openGL error: %d\n", gl_error);
+                fprintf(stderr, "Terminating...\n");
                 glfwTerminate();
                 exit(1);
         }
@@ -48,7 +50,7 @@ static void key_pressed(GLFWwindow *window, int key, int code,
         default:
                 if (action == GLFW_PRESS)
                         Input.keys[key] = true;
-                if (action == GLFW_RELEASE)
+                else if (action == GLFW_RELEASE)
                         Input.keys[key] = false;
         }
         UNUSED(code);
@@ -77,9 +79,8 @@ static void mouse_clicked(GLFWwindow *window, int button, int action, int mode)
         UNUSED(mode);
 }
 
-static GLFWwindow *setupGL(void)
+static GLFWwindow *initGL(void)
 {
-        const char *header = "Robot Control Simulator";
         GLFWwindow *window;
         if (!glfwInit()) {
                 fputs("Failed to initialize glfw\n", stderr);
@@ -87,7 +88,7 @@ static GLFWwindow *setupGL(void)
         }
         glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
         glfwWindowHint(GLFW_SAMPLES, 8);
-        window = glfwCreateWindow(window_width, window_height, header, 0, 0);
+        window = glfwCreateWindow(window_width, window_height, title, 0, 0);
         if (!window) {
                 glfwTerminate();
                 fputs("Failed to create glfw window\n", stderr);
@@ -103,7 +104,6 @@ static GLFWwindow *setupGL(void)
                 fputs("Failed to initialize GLEW\n", stderr);
                 return 0;
         }
-        // add some comments
         glEnable(GL_MULTISAMPLE);
         fprintf(stderr, "Vendor: %s\n", glGetString(GL_VENDOR));
         fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
@@ -138,11 +138,11 @@ static void handle_events(bool& paused, bool& info)
         static int key_not_active = 0;
         if (!key_not_active) {
                 if (Input.keys['q'] || Input.keys['Q']) {
-                        key_not_active = 16;
+                        key_not_active = 10;
                         paused = !paused;
                 }
                 if (Input.keys['e'] || Input.keys['E']) {
-                        key_not_active = 16;
+                        key_not_active = 10;
                         info = !info;
                 }
         }
@@ -171,7 +171,7 @@ static void main_loop(GLFWwindow *window)
 int main(void)
 {
         GLFWwindow *window;
-        window = setupGL();
+        window = initGL();
         if (!window)
                 return 1;
         setup_view();

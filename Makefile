@@ -1,5 +1,5 @@
 PROJECT = simulator
-SRCMODULES = main.cpp manager.cpp vehicle.cpp localmap.cpp graphobject.cpp vector2d.cpp
+SRCMODULES = main.cpp manager.cpp vehicle.cpp graphobject.cpp localmap.cpp vector2d.cpp
 OBJMODULES = $(SRCMODULES:.cpp=.o)
 CXX = g++
 CXXFLAGS = -Wall -Wextra -g -O2 -std=c++98

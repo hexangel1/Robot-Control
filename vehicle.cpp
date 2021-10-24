@@ -5,9 +5,9 @@
 
 const int Vehicle::window_size = 33;
 const int Vehicle::histogram_size = 72;
-const int Vehicle::target_points = 100;
+const int Vehicle::target_points = 60;
 const int Vehicle::smooth_factor = 3;
-const int Vehicle::blur_factor = 2;
+const int Vehicle::blur_factor = 3;
 const double Vehicle::vehicle_radius = 8.0;
 const double Vehicle::speed_constant = 0.015;
 const double Vehicle::max_cell_weight = 100.0;

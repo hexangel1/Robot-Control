@@ -4,7 +4,7 @@
 class LocalMap {
         int width;
         int height;
-        double **map;
+        double *map;
 public:
         LocalMap(int w, int h);
         ~LocalMap();
