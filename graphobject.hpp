@@ -17,10 +17,14 @@ enum colour_constants {
         magenta = 0xFF00FF,
         cyan    = 0x00FFFF,
         white   = 0xFFFFFF,
-        indigo  = 0x4B0082,
-        orange  = 0xFFA500,
+        brown   = 0x8B4513,
         khaki   = 0xBDB76B,
-        rose    = 0xFFC0CB
+        indigo  = 0x4B0082,
+        orange  = 0xFF4500,
+        rose    = 0xEE82EE,
+        dred    = 0x800000,
+        dgreen  = 0x008000,
+        dblue   = 0x000080
 };
 
 struct GraphObjectItem {
