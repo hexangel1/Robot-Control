@@ -1,5 +1,7 @@
 #include "localmap.hpp"
-#include <GLFW/glfw3.h>
+#ifdef DEBUG
+        #include <GLFW/glfw3.h>
+#endif
 
 const int LocalMap::cell_size = 5;
 
@@ -30,6 +32,7 @@ double LocalMap::Get(int i, int j) const
         return 1.0;
 }
 
+#ifdef DEBUG
 void LocalMap::Output()
 {
         glBegin(GL_QUADS);
@@ -47,4 +50,5 @@ void LocalMap::Output()
         }
         glEnd();
 }
+#endif
 

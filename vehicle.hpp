@@ -1,8 +1,8 @@
 #ifndef VEHICLE_HPP_SENTRY
 #define VEHICLE_HPP_SENTRY
 
-#include "vector2d.hpp"
 #include "graphobject.hpp"
+#include "vector2d.hpp"
 
 class Vehicle : public Circle {
         Vector2D speed;

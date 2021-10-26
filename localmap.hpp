@@ -12,8 +12,10 @@ public:
         double Get(int i, int j) const;
         inline int Width() const { return width; }
         inline int Height() const { return height; }
-        void Output();
         static const int cell_size;
+#ifdef DEBUG
+        void Display();
+#endif
 };
 
 #endif /* LOCALMAP_HPP_SENTRY */

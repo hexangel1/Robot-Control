@@ -1,11 +1,8 @@
-#define GLEW_STATIC
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <cstdio>
 #include <cstdlib>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "manager.hpp"
-
-#define UNUSED(x) (void)x
 
 struct InputState {
         bool keys[1024];
@@ -42,8 +39,8 @@ static void key_pressed(GLFWwindow *window, int key, int code,
                 else if (action == GLFW_RELEASE)
                         Input.keys[key] = false;
         }
-        UNUSED(code);
-        UNUSED(mode);
+        (void)code;
+        (void)mode;
 }
 
 static void mouse_moved(GLFWwindow *window, double xpos, double ypos)
@@ -52,7 +49,7 @@ static void mouse_moved(GLFWwindow *window, double xpos, double ypos)
         Input.last_y = ypos;
         if (Input.first_mouse)
                 Input.first_mouse = false;
-        UNUSED(window);
+        (void)window;
 }
 
 static void mouse_clicked(GLFWwindow *window, int button, int action, int mode)
@@ -65,7 +62,7 @@ static void mouse_clicked(GLFWwindow *window, int button, int action, int mode)
         } else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
-        UNUSED(mode);
+        (void)mode;
 }
 
 static GLFWwindow *initGL(void)

@@ -1,8 +1,8 @@
 #ifndef MANAGER_HPP_SENTRY
 #define MANAGER_HPP_SENTRY
 
-#include "graphobject.hpp"
 #include "vehicle.hpp"
+#include "graphobject.hpp"
 
 class Manager {
         LocalMap map;

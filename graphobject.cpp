@@ -1,7 +1,6 @@
 #include <cmath>
 #include <GLFW/glfw3.h>
 #include "graphobject.hpp"
-#include <cstdio>
 
 void GraphObject::Move(const Vector2D& move)
 {
@@ -153,6 +152,5 @@ void Triangle::Mapping(LocalMap& map, bool s) const
                         }
                 }
         }
- 
 }
 
