@@ -22,17 +22,6 @@ static const char title[] = "Robot Control Simulator";
 static const int window_width = 1920;
 static const int window_height = 1000;
 
-static void gl_check_errors(void)
-{
-        GLenum gl_error = glGetError();
-        if (gl_error != GL_NO_ERROR) {
-                fprintf(stderr, "Runtime openGL error: %d\n", gl_error);
-                fprintf(stderr, "Terminating...\n");
-                glfwTerminate();
-                exit(1);
-        }
-}
-
 static void key_pressed(GLFWwindow *window, int key, int code,
                         int action, int mode)
 {
@@ -119,21 +108,20 @@ static void setup_view(void)
         glLoadIdentity();
         glOrtho(0.0, window_width, window_height, 0.0, -1.0, 1.0);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        gl_check_errors();
 }
 
 static void init_input(void)
 {
         for (int i = 0; i < 1024; i++)
                 Input.keys[i] = false;
-        Input.mouse_captured = true;
+        Input.mouse_captured = false;
         Input.captured_now = false;
         Input.first_mouse = true;
         Input.last_x = 0.0;
         Input.last_y = 0.0;
 };
 
-static void handle_events(bool& paused, bool& info)
+static void EventHandler(bool& paused, bool& info)
 {
         static int key_not_active = 0;
         if (!key_not_active) {
@@ -150,21 +138,27 @@ static void handle_events(bool& paused, bool& info)
                 key_not_active--;
 }
 
-static void main_loop(GLFWwindow *window)
+static void mainloop(GLFWwindow *window)
 {
         Manager Model(window_width, window_height);
         bool paused = true;
         bool info = false;
         Model.Init();
-        while (!glfwWindowShouldClose(window)) {
+        for (;;) {
                 glfwPollEvents();
-                handle_events(paused, info);
+                if (glfwWindowShouldClose(window))
+                        break;
+                EventHandler(paused, info);
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 Model.Update(paused, info);
                 glFlush();
+                GLenum err = glGetError();
+                if (err != GL_NO_ERROR) {
+                        fprintf(stderr, "OpenGL error: %i\n", err);
+                        break;
+                }
                 glfwSwapBuffers(window);
-                gl_check_errors();
         }
 }
 
@@ -176,7 +170,7 @@ int main(void)
                 return 1;
         setup_view();
         init_input();
-        main_loop(window);
+        mainloop(window);
         glfwDestroyWindow(window);
         glfwTerminate();
         return 0;

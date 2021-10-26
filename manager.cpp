@@ -30,7 +30,6 @@ void Manager::Init()
         AddRobot(new Vehicle(Vector2D(300, 100), white, Vector2D(1800, 700)));
         AddRobot(new Vehicle(Vector2D(20, 350), rose, Vector2D(1800, 80))); 
         AddRobot(new Vehicle(Vector2D(200, 550), khaki, Vector2D(1800, 500))); 
-        AddObject(new Square(Vector2D(1200, 430), red, 90));
         for (int i = 200; i < 1700; i += 400)
                 AddObject(new Rectangle(Vector2D(i, 380), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
@@ -39,6 +38,8 @@ void Manager::Init()
                 AddObject(new Rectangle(Vector2D(i, 800), red, 90, 200));
         for (int i = 400; i < 1700; i += 400)
                 AddObject(new Ellipse(Vector2D(i, 700), red, 50, 100));
+        for (int i = 400; i < 1700; i += 400)
+                AddObject(new Triangle(Vector2D(i, 380), red, 70));
         MapInit();
         Display();
 }

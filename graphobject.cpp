@@ -1,6 +1,7 @@
 #include <cmath>
 #include <GLFW/glfw3.h>
 #include "graphobject.hpp"
+#include <cstdio>
 
 void GraphObject::Move(const Vector2D& move)
 {
@@ -98,5 +99,60 @@ void Rectangle::Mapping(LocalMap& map, bool s) const
                         map.Set(i, j, s ? 1.0 : 0.0);
                 }
         }
+}
+
+void Triangle::Show() const
+{
+        glBegin(GL_TRIANGLES);
+        glColor3ub(RED(colour), GREEN(colour), BLUE(colour));
+        glVertex2d(coord.X() + va.X(), coord.Y() + va.Y());
+        glVertex2d(coord.X() + vb.X(), coord.Y() + vb.Y());
+        glVertex2d(coord.X() + vc.X(), coord.Y() + vc.Y());
+        glEnd();
+}
+
+void Triangle::Hide() const
+{
+        glBegin(GL_TRIANGLES);
+        glColor3ub(0, 0, 0);
+        glVertex2d(coord.X() + va.X(), coord.Y() + va.Y());
+        glVertex2d(coord.X() + vb.X(), coord.Y() + vb.Y());
+        glVertex2d(coord.X() + vc.X(), coord.Y() + vc.Y());
+        glEnd();
+}
+
+bool Triangle::IsInside(const Vector2D& p) const
+{
+        double a, b, c;
+        Vector2D vat = coord + va;
+        Vector2D vbt = coord + vb;
+        Vector2D vct = coord + vc;
+        a = (vat.X() - p.X()) * (vbt.Y() - vat.Y()) - 
+            (vat.Y() - p.Y()) * (vbt.X() - vat.X());
+        b = (vbt.X() - p.X()) * (vct.Y() - vbt.Y()) -
+            (vbt.Y() - p.Y()) * (vct.X() - vbt.X());
+        c = (vct.X() - p.X()) * (vat.Y() - vct.Y()) -
+            (vct.Y() - p.Y()) * (vat.X() - vct.X());
+        return (a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0);
+}
+
+void Triangle::Mapping(LocalMap& map, bool s) const
+{
+        int size = LocalMap::cell_size;
+        double x, y;
+        double max_x = MAX(va.X(), MAX(vb.X(), vc.X()));
+        double min_x = MIN(va.X(), MIN(vb.X(), vc.X()));
+        double max_y = MAX(va.Y(), MAX(vb.Y(), vc.Y()));
+        double min_y = MIN(va.Y(), MIN(vb.Y(), vc.Y()));
+        for (x = min_x; x <= max_x; x += 1.0) {
+                for (y = min_y; y <= max_y; y += 1.0) {
+                        if (IsInside(coord + Vector2D(x, y))) {
+                                int j = (int)(coord.X() + x) / size;
+                                int i = (int)(coord.Y() + y) / size;
+                                map.Set(i, j, s ? 1.0 : 0.0);
+                        }
+                }
+        }
+ 
 }
 
