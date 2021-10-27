@@ -1,6 +1,7 @@
 #include <cmath>
 #include <GLFW/glfw3.h>
 #include "vehicle.hpp"
+#include <cstdio>
 
 const int Vehicle::window_size = 33;
 const int Vehicle::histogram_size = 60;
@@ -15,20 +16,19 @@ const double Vehicle::max_vehicle_boost = 1.0;
 const double Vehicle::max_obstacle_density = 100.0;
 const double Vehicle::safe_distance = 80.0;
 
-Vehicle::Vehicle(const Vector2D& coord, int colour, const Vector2D& t)
+Vehicle::Vehicle(const Vector2d& coord, int colour, const Vector2d& t)
         : Circle(coord, colour, vehicle_radius),
-        speed(0.0, 0.0), boost(0.0, 0.0), target(t)
+        speed(0.0, 0.0), boost(0.0, 0.0), target(t),
+        active_region(window_size, window_size)
 {
-        accident = false;
-        active_region = new double[window_size * window_size];
         obstacle_density = new double[histogram_size];
         for (int k = 0; k < histogram_size; k++)
                 obstacle_density[k] = 0.0;
+        accident = false;
 }
 
 Vehicle::~Vehicle()
 {
-        delete[] active_region;
         delete[] obstacle_density;
 }
 
@@ -64,8 +64,10 @@ void Vehicle::ReadActiveRegion(LocalMap& map)
         offsety = (int)coord.Y() / LocalMap::cell_size - window_size / 2;
         offsetx = (int)coord.X() / LocalMap::cell_size - window_size / 2;
         for (i = 0; i < window_size; i++) {
-                for (j = 0; j < window_size; j++)
-                        SetRegion(i, j, map.Get(offsety + i, offsetx + j));
+                for (j = 0; j < window_size; j++) {
+                        double v = map.Get(offsety + i, offsetx + j);
+                        active_region.Set(i, j, v);
+                }
         }
 }
 
@@ -76,13 +78,13 @@ void Vehicle::BlurActiveRegion()
         for (k = 0; k < blur_factor; k++) {
                 for (i = 0; i < window_size; i++) {
                         for (j = 0; j < window_size; j++) {
-                                double v = GetRegion(i, j);
+                                double v = active_region.Get(i, j);
                                 tmp[i][j] = v > 0.0 ? v : MidLocalVal(i, j);
                         }
                 }
                 for (i = 0; i < window_size; i++) {
                         for (j = 0; j < window_size; j++)
-                                SetRegion(i, j, tmp[i][j]);
+                                active_region.Set(i, j, tmp[i][j]);
                 }
         }
 }
@@ -98,7 +100,7 @@ void Vehicle::PolarHistogram()
                 for (int j = 0; j < window_size; j++) {
                         int k = Sector(i, j);
                         double d = Distance(i, j);
-                        h[k] += pow(GetRegion(i, j), 2) * (a - b * d);
+                        h[k] += pow(active_region.Get(i, j), 2) * (a - b * d);
                 }
         }
         for (int k = 0; k < histogram_size; k++) {
@@ -114,7 +116,7 @@ void Vehicle::PolarHistogram()
         }
 }
 
-Vector2D Vehicle::Control() const
+Vector2d Vehicle::Control() const
 {
         int k = SteerControl();
         double s = SpeedControl(k);
@@ -146,10 +148,10 @@ double Vehicle::SpeedControl(int k) const
 
 double Vehicle::Score(int k) const
 {
-        Vector2D dir = Direction(k);
+        Vector2d dir = Direction(k);
         double score, best_score = -1.0;
         for (int i = 0; i < target_points; i++) {
-                Vector2D goal = Goal(i) - coord;
+                Vector2d goal = Goal(i) - coord;
                 goal.Normalize();
                 score = dir * goal;
                 if (score > best_score)
@@ -178,8 +180,8 @@ double Vehicle::MidLocalVal(int i, int j) const
                         if (i + k < 0 || i + k >= window_size ||
                             j + l < 0 || j + l >= window_size)
                                 continue;
-                        if (GetRegion(i + k, j + l) != 0.0) {
-                                sum += GetRegion(i + k, j + l);
+                        if (active_region.Get(i + k, j + l) != 0.0) {
+                                sum += active_region.Get(i + k, j + l);
                                 amount++;
                         }
                 }
@@ -187,18 +189,18 @@ double Vehicle::MidLocalVal(int i, int j) const
         return amount > 0 ? sum / (double)amount : 0.0;
 }
 
-Vector2D Vehicle::Direction(int k) const
+Vector2d Vehicle::Direction(int k) const
 {
         const double step = 360.0 / histogram_size;
-        Vector2D dir(1.0, 0.0);
+        Vector2d dir(1.0, 0.0);
         dir.Rotate(DEG2RAD(-k * step - step / 2.0));
         return dir;
 }
 
-Vector2D Vehicle::Goal(int k) const
+Vector2d Vehicle::Goal(int k) const
 {
         const double step = 2 * PI / target_points;
-        Vector2D dir(1.0, 0.0);
+        Vector2d dir(1.0, 0.0);
         dir.Rotate(-k * step);
         return target + safe_distance * dir;
 }
@@ -210,7 +212,7 @@ bool Vehicle::IsTargetReached() const
 
 bool Vehicle::CheckMove(const LocalMap& map) const
 {
-        Vector2D ray(Radius(), 0.0);
+        Vector2d ray(Radius(), 0.0);
         for (int k = 0; k < 8; k++) {
                 int j = (int)(coord + ray).X() / LocalMap::cell_size;
                 int i = (int)(coord + ray).Y() / LocalMap::cell_size;
@@ -227,7 +229,7 @@ void Vehicle::ShowTargetSet() const
         glColor3ub(0, 255, 0);
         for (int i = 0; i < 100; i++) {
                 double t = 2.0 * PI * (double)i / 100.0;
-                Vector2D p = target + safe_distance * Vector2D(cos(t), sin(t));
+                Vector2d p = target + safe_distance * Vector2d(cos(t), sin(t));
                 glVertex2f(p.X(), p.Y());
         }
         glEnd();
@@ -252,12 +254,12 @@ void Vehicle::ShowFreeDirections() const
         int k;
         double min = MinDensity();
         glBegin(GL_LINES);
-        glColor3ub(0, 255, 0); 
+        glColor3ub(0, 255, 0);
         for (k = 0; k < histogram_size; k++) {
                 if (obstacle_density[k] == min) {
-                        Vector2D dir = Direction(k);
-                        Vector2D a = coord + dir * (Radius() + 5.0);
-                        Vector2D b = coord + dir * Radius() * 10.0;
+                        Vector2d dir = Direction(k);
+                        Vector2d a = coord + dir * (Radius() + 5.0);
+                        Vector2d b = coord + dir * Radius() * 10.0;
                         glVertex2f(a.X(), a.Y());
                         glVertex2f(b.X(), b.Y());
                 }

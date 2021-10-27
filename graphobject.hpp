@@ -34,18 +34,18 @@ struct GraphObjectItem {
 
 class GraphObject {
 protected:
-        Vector2D coord;
+        Vector2d coord;
         int colour;
 public:
-        GraphObject(const Vector2D& point, int col)
+        GraphObject(const Vector2d& point, int col)
                 : coord(point), colour(col) {}
         virtual ~GraphObject() {}
         virtual void Show() const = 0;
         virtual void Hide() const = 0;
-        virtual bool IsInside(const Vector2D& point) const = 0;
+        virtual bool IsInside(const Vector2d& point) const = 0;
         virtual void Mapping(LocalMap& map, bool s) const = 0;
-        void Move(const Vector2D& move);
-        inline Vector2D GetXY() const { return coord; }
+        void Move(const Vector2d& move);
+        inline Vector2d GetXY() const { return coord; }
         inline int Colour() const { return colour; }
 };
 
@@ -53,12 +53,12 @@ class Ellipse : public GraphObject {
         double major_axis;
         double minor_axis;
 public:
-        Ellipse(const Vector2D& coord, int colour, double a, double b)
+        Ellipse(const Vector2d& coord, int colour, double a, double b)
                 : GraphObject(coord, colour), major_axis(a), minor_axis(b) {}
         virtual ~Ellipse() {}
         virtual void Show() const;
         virtual void Hide() const;
-        virtual bool IsInside(const Vector2D& point) const;
+        virtual bool IsInside(const Vector2d& point) const;
         virtual void Mapping(LocalMap& map, bool s) const;
         inline double MajorAxis() const { return major_axis; }
         inline double MinorAxis() const { return minor_axis; }
@@ -68,35 +68,35 @@ class Rectangle : public GraphObject {
         double width;
         double height;
 public:
-        Rectangle(const Vector2D& coord, int colour, double a, double b)
+        Rectangle(const Vector2d& coord, int colour, double a, double b)
                 : GraphObject(coord, colour), width(a), height(b) {}
         virtual ~Rectangle() {}
         virtual void Show() const;
         virtual void Hide() const;
-        virtual bool IsInside(const Vector2D& point) const;
+        virtual bool IsInside(const Vector2d& point) const;
         virtual void Mapping(LocalMap& map, bool s) const;
         inline double Width() const { return width; }
         inline double Height() const { return height; }
 };
 
 class Triangle : public GraphObject {
-        Vector2D va;
-        Vector2D vb;
-        Vector2D vc;
+        Vector2d va;
+        Vector2d vb;
+        Vector2d vc;
 public:
-        Triangle(const Vector2D& coord, int colour, double a)
+        Triangle(const Vector2d& coord, int colour, double a)
                 : GraphObject(coord, colour),
-                va(Vector2D(0.0, -a / 1.7320508)), 
-                vb(Vector2D(+a / 2.0, a / 3.4641016)), 
-                vc(Vector2D(-a / 2.0, a / 3.4641016)) {}
-        Triangle(const Vector2D& a, const Vector2D& b, const Vector2D& c,
+                va(Vector2d(0.0, -a / 1.7320508)),
+                vb(Vector2d(+a / 2.0, a / 3.4641016)),
+                vc(Vector2d(-a / 2.0, a / 3.4641016)) {}
+        Triangle(const Vector2d& a, const Vector2d& b, const Vector2d& c,
                  int colour)
-                : GraphObject((a + b + c) / 3, colour), 
+                : GraphObject((a + b + c) / 3, colour),
                 va(a - coord), vb(b - coord), vc(c - coord) {}
         virtual ~Triangle() {}
         virtual void Show() const;
         virtual void Hide() const;
-        virtual bool IsInside(const Vector2D& point) const;
+        virtual bool IsInside(const Vector2d& point) const;
         virtual void Mapping(LocalMap& map, bool s) const;
         inline double LengthAB() const { return (va - vb).Module(); }
         inline double LengthBC() const { return (vb - vc).Module(); }
@@ -105,7 +105,7 @@ public:
 
 class Circle : public Ellipse {
 public:
-        Circle(const Vector2D& coord, int colour, double radius)
+        Circle(const Vector2d& coord, int colour, double radius)
                 : Ellipse(coord, colour, radius, radius) {}
         virtual ~Circle() {}
         inline double Radius() const { return MajorAxis(); }
@@ -113,7 +113,7 @@ public:
 
 class Square : public Rectangle {
 public:
-        Square(const Vector2D& coord, int colour, double size)
+        Square(const Vector2d& coord, int colour, double size)
                 : Rectangle(coord, colour, size, size) {}
         virtual ~Square() {}
         inline double Size() const { return Width(); }

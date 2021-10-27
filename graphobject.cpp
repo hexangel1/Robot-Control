@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include "graphobject.hpp"
 
-void GraphObject::Move(const Vector2D& move)
+void GraphObject::Move(const Vector2d& move)
 {
         Hide();
         coord = move;
@@ -12,7 +12,7 @@ void GraphObject::Move(const Vector2D& move)
 void Ellipse::Show() const
 {
         glBegin(GL_TRIANGLE_FAN);
-        glColor3ub(RED(colour), GREEN(colour), BLUE(colour)); 
+        glColor3ub(RED(colour), GREEN(colour), BLUE(colour));
         glVertex2f(coord.X(), coord.Y());
         double step = 2 * PI / 100;
         for (double phi = 0; phi <= 2 * PI; phi += step) {
@@ -37,9 +37,9 @@ void Ellipse::Hide() const
         glEnd();
 }
 
-bool Ellipse::IsInside(const Vector2D& point) const
+bool Ellipse::IsInside(const Vector2d& point) const
 {
-        Vector2D v = point - coord;
+        Vector2d v = point - coord;
         return pow(v.X() / major_axis, 2) + pow(v.Y() / minor_axis, 2) <= 1;
 }
 
@@ -49,7 +49,7 @@ void Ellipse::Mapping(LocalMap& map, bool s) const
         int size = LocalMap::cell_size;
         for (x = -major_axis; x < major_axis; x++) {
                 for (y = -minor_axis; y < minor_axis; y++) {
-                        if (IsInside(coord + Vector2D(x, y))) {
+                        if (IsInside(coord + Vector2d(x, y))) {
                                 int j = (int)(coord.X() + x) / size;
                                 int i = (int)(coord.Y() + y) / size;
                                 map.Set(i, j, s ? 1.0 : 0.0);
@@ -61,7 +61,7 @@ void Ellipse::Mapping(LocalMap& map, bool s) const
 void Rectangle::Show() const
 {
         glBegin(GL_QUADS);
-        glColor3ub(RED(colour), GREEN(colour), BLUE(colour)); 
+        glColor3ub(RED(colour), GREEN(colour), BLUE(colour));
         glVertex2f(coord.X() - width / 2, coord.Y() + height / 2);
         glVertex2f(coord.X() - width / 2, coord.Y() - height / 2);
         glVertex2f(coord.X() + width / 2, coord.Y() - height / 2);
@@ -80,9 +80,9 @@ void Rectangle::Hide() const
         glEnd();
 }
 
-bool Rectangle::IsInside(const Vector2D& point) const
+bool Rectangle::IsInside(const Vector2d& point) const
 {
-        Vector2D v = point - coord;
+        Vector2d v = point - coord;
         return v.X() <= width / 2 && v.X() >= -width / 2 &&
                v.Y() <= height / 2 && v.Y() >= -height / 2;
 }
@@ -120,13 +120,13 @@ void Triangle::Hide() const
         glEnd();
 }
 
-bool Triangle::IsInside(const Vector2D& p) const
+bool Triangle::IsInside(const Vector2d& p) const
 {
         double a, b, c;
-        Vector2D vat = coord + va;
-        Vector2D vbt = coord + vb;
-        Vector2D vct = coord + vc;
-        a = (vat.X() - p.X()) * (vbt.Y() - vat.Y()) - 
+        Vector2d vat = coord + va;
+        Vector2d vbt = coord + vb;
+        Vector2d vct = coord + vc;
+        a = (vat.X() - p.X()) * (vbt.Y() - vat.Y()) -
             (vat.Y() - p.Y()) * (vbt.X() - vat.X());
         b = (vbt.X() - p.X()) * (vct.Y() - vbt.Y()) -
             (vbt.Y() - p.Y()) * (vct.X() - vbt.X());
@@ -145,7 +145,7 @@ void Triangle::Mapping(LocalMap& map, bool s) const
         double min_y = MIN(va.Y(), MIN(vb.Y(), vc.Y()));
         for (x = min_x; x <= max_x; x += 1.0) {
                 for (y = min_y; y <= max_y; y += 1.0) {
-                        if (IsInside(coord + Vector2D(x, y))) {
+                        if (IsInside(coord + Vector2d(x, y))) {
                                 int j = (int)(coord.X() + x) / size;
                                 int i = (int)(coord.Y() + y) / size;
                                 map.Set(i, j, s ? 1.0 : 0.0);

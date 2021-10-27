@@ -2,7 +2,7 @@
 #include <cmath>
 #include "vector2d.hpp"
 
-void Vector2D::Normalize()
+void Vector2d::Normalize()
 {
         double module = Module();
         if (module > 0.0) {
@@ -11,7 +11,7 @@ void Vector2D::Normalize()
         }
 }
 
-void Vector2D::Rotate(double phi)
+void Vector2d::Rotate(double phi)
 {
         const double SO2[2][2] = {
                 { cos(phi), -sin(phi) },
@@ -24,18 +24,18 @@ void Vector2D::Rotate(double phi)
         y = new_y;
 }
 
-void Vector2D::Saturation(double min, double max)
+void Vector2d::Saturation(double min, double max)
 {
         double len = Module();
         if (len > max || len < min) {
-                double coef = len > max ? max : min; 
+                double coef = len > max ? max : min;
                 Normalize();
                 x *= coef;
                 y *= coef;
         }
 }
 
-double Vector2D::Norm(int p) const
+double Vector2d::Norm(int p) const
 {
         if (p == 1)
                 return abs(x) + abs(y);
@@ -46,117 +46,117 @@ double Vector2D::Norm(int p) const
         return -1.0;
 }
 
-double Vector2D::Module() const
+double Vector2d::Module() const
 {
         return Norm(2);
 }
 
-void Vector2D::Print() const
+void Vector2d::Print() const
 {
         fprintf(stderr, "[%f, %f]\n", x, y);
 }
 
-const Vector2D& Vector2D::operator=(const Vector2D& v)
+const Vector2d& Vector2d::operator=(const Vector2d& v)
 {
         x = v.x;
         y = v.y;
         return *this;
 }
 
-const Vector2D& Vector2D::operator+=(const Vector2D& v)
+const Vector2d& Vector2d::operator+=(const Vector2d& v)
 {
         x += v.x;
         y += v.y;
         return *this;
 }
 
-const Vector2D& Vector2D::operator-=(const Vector2D& v)
+const Vector2d& Vector2d::operator-=(const Vector2d& v)
 {
         x -= v.x;
         y -= v.y;
         return *this;
 }
 
-const Vector2D& Vector2D::operator*=(double a)
+const Vector2d& Vector2d::operator*=(double a)
 {
         x *= a;
         y *= a;
         return *this;
 }
 
-const Vector2D& Vector2D::operator/=(double a)
+const Vector2d& Vector2d::operator/=(double a)
 {
         x /= a;
         y /= a;
         return *this;
 }
 
-Vector2D operator+(const Vector2D& v)
+Vector2d operator+(const Vector2d& v)
 {
-        return Vector2D(v.x, v.y);
+        return Vector2d(v.x, v.y);
 }
 
-Vector2D operator-(const Vector2D& v)
+Vector2d operator-(const Vector2d& v)
 {
-        return Vector2D(-v.x, -v.y);
+        return Vector2d(-v.x, -v.y);
 }
 
-Vector2D operator+(const Vector2D& v1, const Vector2D& v2)
+Vector2d operator+(const Vector2d& v1, const Vector2d& v2)
 {
-        return Vector2D(v1.x + v2.x, v1.y + v2.y);
+        return Vector2d(v1.x + v2.x, v1.y + v2.y);
 }
 
-Vector2D operator-(const Vector2D& v1, const Vector2D& v2)
+Vector2d operator-(const Vector2d& v1, const Vector2d& v2)
 {
-        return Vector2D(v1.x - v2.x, v1.y - v2.y);
+        return Vector2d(v1.x - v2.x, v1.y - v2.y);
 }
 
-Vector2D operator*(const Vector2D& v, double a)
+Vector2d operator*(const Vector2d& v, double a)
 {
-        return Vector2D(v.x * a, v.y * a);
+        return Vector2d(v.x * a, v.y * a);
 }
 
-Vector2D operator*(double a, const Vector2D& v)
+Vector2d operator*(double a, const Vector2d& v)
 {
-        return Vector2D(v.x * a, v.y * a);
+        return Vector2d(v.x * a, v.y * a);
 }
 
-Vector2D operator/(const Vector2D& v, double a)
+Vector2d operator/(const Vector2d& v, double a)
 {
-        return Vector2D(v.x / a, v.y / a);
+        return Vector2d(v.x / a, v.y / a);
 }
 
-double operator*(const Vector2D& v1, const Vector2D& v2)
+double operator*(const Vector2d& v1, const Vector2d& v2)
 {
         return v1.x * v2.x + v1.y * v2.y;
 }
 
-bool operator==(const Vector2D& v1, const Vector2D& v2)
+bool operator==(const Vector2d& v1, const Vector2d& v2)
 {
         return v1.x == v2.x && v1.y == v2.y;
 }
 
-bool operator!=(const Vector2D& v1, const Vector2D& v2)
+bool operator!=(const Vector2d& v1, const Vector2d& v2)
 {
         return v1.x != v2.x || v1.y != v2.y;
 }
 
-bool operator>=(const Vector2D& v1, const Vector2D& v2)
+bool operator>=(const Vector2d& v1, const Vector2d& v2)
 {
         return v1.x >= v2.x && v1.y >= v2.y;
 }
 
-bool operator<=(const Vector2D& v1, const Vector2D& v2)
+bool operator<=(const Vector2d& v1, const Vector2d& v2)
 {
         return v1.x <= v2.x && v1.y <= v2.y;
 }
 
-bool operator>(const Vector2D& v1, const Vector2D& v2)
+bool operator>(const Vector2d& v1, const Vector2d& v2)
 {
         return v1.x > v2.x && v1.y > v2.y;
 }
 
-bool operator<(const Vector2D& v1, const Vector2D& v2)
+bool operator<(const Vector2d& v1, const Vector2d& v2)
 {
         return v1.x < v2.x && v1.y < v2.y;
 }

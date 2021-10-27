@@ -3,14 +3,15 @@
 
 #include "graphobject.hpp"
 #include "vector2d.hpp"
+#include "localmap.hpp"
 
 class Vehicle : public Circle {
-        Vector2D speed;
-        Vector2D boost;
-        Vector2D target;
-        bool accident;
-        double *active_region;
+        Vector2d speed;
+        Vector2d boost;
+        Vector2d target;
+        LocalMap active_region;
         double *obstacle_density;
+        bool accident;
         static const int window_size;
         static const int histogram_size;
         static const int target_points;
@@ -24,30 +25,26 @@ class Vehicle : public Circle {
         static const double max_obstacle_density;
         static const double safe_distance;
 public:
-        Vehicle(const Vector2D& coord, int colour, const Vector2D& t);
+        Vehicle(const Vector2d& coord, int colour, const Vector2d& t);
         ~Vehicle();
         void Update(Vehicle **robots, LocalMap& map);
         void ShowInfo() const;
-        inline void SetRegion(int i, int j, double val)
-                { active_region[i * window_size + j] = val; } 
-        inline double GetRegion(int i, int j) const
-                { return active_region[i * window_size + j]; } 
-        inline Vector2D GetSpeed() const { return speed; }
-        inline Vector2D GetBoost() const { return boost; }
-        inline Vector2D GetTarget() const { return target; }
+        inline Vector2d GetSpeed() const { return speed; }
+        inline Vector2d GetBoost() const { return boost; }
+        inline Vector2d GetTarget() const { return target; }
         inline bool AccidentHappened() const { return accident; }
 private:
         void ReadActiveRegion(LocalMap& map);
         void BlurActiveRegion();
         void PolarHistogram();
-        Vector2D Control() const;
+        Vector2d Control() const;
         int SteerControl() const;
         double SpeedControl(int k) const;
         double Score(int k) const;
         double MinDensity() const;
         double MidLocalVal(int i, int j) const;
-        Vector2D Direction(int k) const;
-        Vector2D Goal(int k) const;
+        Vector2d Direction(int k) const;
+        Vector2d Goal(int k) const;
         bool IsTargetReached() const;
         bool CheckMove(const LocalMap& map) const;
         void ShowTargetSet() const;
