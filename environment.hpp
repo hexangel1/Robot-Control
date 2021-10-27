@@ -1,13 +1,13 @@
-#ifndef LOCALMAP_HPP_SENTRY
-#define LOCALMAP_HPP_SENTRY
+#ifndef ENVIRONMENT_HPP_SENTRY
+#define ENVIRONMENT_HPP_SENTRY
 
-class LocalMap {
+class Environment {
         int width;
         int height;
         double *map;
 public:
-        LocalMap(int w, int h);
-        ~LocalMap();
+        Environment(int w, int h);
+        ~Environment();
         inline void Set(int i, int j, double v) {
                 if (0 <= i && i < height && 0 <= j && j < width)
                         map[i * width + j] = v;
@@ -20,10 +20,10 @@ public:
         inline int Width() const { return width; }
         inline int Height() const { return height; }
         static const int cell_size;
-#ifdef DEBUG
+#if DEBUG == 1
         void Display();
 #endif
 };
 
-#endif /* LOCALMAP_HPP_SENTRY */
+#endif /* ENVIRONMENT_HPP_SENTRY */
 

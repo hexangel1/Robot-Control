@@ -1,8 +1,8 @@
 #ifndef GRAPHOBJECT_HPP_SENTRY
 #define GRAPHOBJECT_HPP_SENTRY
 
+#include "environment.hpp"
 #include "vector2d.hpp"
-#include "localmap.hpp"
 
 #define RED(param)   (((param) & 0xFF0000) >> 0x10)
 #define GREEN(param) (((param) & 0x00FF00) >> 0x8)
@@ -43,7 +43,7 @@ public:
         virtual void Show() const = 0;
         virtual void Hide() const = 0;
         virtual bool IsInside(const Vector2d& point) const = 0;
-        virtual void Mapping(LocalMap& map, bool s) const = 0;
+        virtual void Mapping(Environment& map, bool s) const = 0;
         void Move(const Vector2d& move);
         inline Vector2d GetXY() const { return coord; }
         inline int Colour() const { return colour; }
@@ -59,7 +59,7 @@ public:
         virtual void Show() const;
         virtual void Hide() const;
         virtual bool IsInside(const Vector2d& point) const;
-        virtual void Mapping(LocalMap& map, bool s) const;
+        virtual void Mapping(Environment& map, bool s) const;
         inline double MajorAxis() const { return major_axis; }
         inline double MinorAxis() const { return minor_axis; }
 };
@@ -74,7 +74,7 @@ public:
         virtual void Show() const;
         virtual void Hide() const;
         virtual bool IsInside(const Vector2d& point) const;
-        virtual void Mapping(LocalMap& map, bool s) const;
+        virtual void Mapping(Environment& map, bool s) const;
         inline double Width() const { return width; }
         inline double Height() const { return height; }
 };
@@ -97,7 +97,7 @@ public:
         virtual void Show() const;
         virtual void Hide() const;
         virtual bool IsInside(const Vector2d& point) const;
-        virtual void Mapping(LocalMap& map, bool s) const;
+        virtual void Mapping(Environment& map, bool s) const;
         inline double LengthAB() const { return (va - vb).Module(); }
         inline double LengthBC() const { return (vb - vc).Module(); }
         inline double LengthAC() const { return (va - vc).Module(); }

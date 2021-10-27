@@ -1,11 +1,11 @@
-#include "localmap.hpp"
-#ifdef DEBUG
+#include "environment.hpp"
+#if DEBUG == 1
         #include <GLFW/glfw3.h>
 #endif
 
-const int LocalMap::cell_size = 5;
+const int Environment::cell_size = 5;
 
-LocalMap::LocalMap(int w, int h)
+Environment::Environment(int w, int h)
 {
         width = w;
         height = h;
@@ -14,13 +14,13 @@ LocalMap::LocalMap(int w, int h)
                 map[i] = 0.0;
 }
 
-LocalMap::~LocalMap()
+Environment::~Environment()
 {
         delete[] map;
 }
 
-#ifdef DEBUG
-void LocalMap::Output()
+#if DEBUG == 1
+void Environment::Display()
 {
         glBegin(GL_QUADS);
         int size = cell_size;

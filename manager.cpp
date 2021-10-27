@@ -1,7 +1,7 @@
 #include "manager.hpp"
 
 Manager::Manager(int width, int height)
-        : map(width / LocalMap::cell_size, height / LocalMap::cell_size)
+        : map(width / Environment::cell_size, height / Environment::cell_size)
 {
         objects = 0;
         robots = new Vehicle*[4];

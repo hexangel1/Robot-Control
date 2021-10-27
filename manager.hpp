@@ -5,7 +5,7 @@
 #include "graphobject.hpp"
 
 class Manager {
-        LocalMap map;
+        Environment map;
         GraphObjectItem *objects;
         Vehicle **robots;
         int allocated;

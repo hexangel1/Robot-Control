@@ -1,7 +1,6 @@
 #include <cmath>
 #include <GLFW/glfw3.h>
 #include "vehicle.hpp"
-#include <cstdio>
 
 const int Vehicle::window_size = 33;
 const int Vehicle::histogram_size = 60;
@@ -32,7 +31,7 @@ Vehicle::~Vehicle()
         delete[] obstacle_density;
 }
 
-void Vehicle::Update(Vehicle **robots, LocalMap& map)
+void Vehicle::Update(Vehicle **robots, Environment& map)
 {
         if (accident)
                 return;
@@ -58,11 +57,11 @@ void Vehicle::ShowInfo() const
         ShowFreeDirections();
 }
 
-void Vehicle::ReadActiveRegion(LocalMap& map)
+void Vehicle::ReadActiveRegion(Environment& map)
 {
         int i, j, offsetx, offsety;
-        offsety = (int)coord.Y() / LocalMap::cell_size - window_size / 2;
-        offsetx = (int)coord.X() / LocalMap::cell_size - window_size / 2;
+        offsety = (int)coord.Y() / Environment::cell_size - window_size / 2;
+        offsetx = (int)coord.X() / Environment::cell_size - window_size / 2;
         for (i = 0; i < window_size; i++) {
                 for (j = 0; j < window_size; j++) {
                         double v = map.Get(offsety + i, offsetx + j);
@@ -210,12 +209,12 @@ bool Vehicle::IsTargetReached() const
         return abs((target - coord).Module() - safe_distance) <= Radius();
 }
 
-bool Vehicle::CheckMove(const LocalMap& map) const
+bool Vehicle::CheckMove(const Environment& map) const
 {
         Vector2d ray(Radius(), 0.0);
         for (int k = 0; k < 8; k++) {
-                int j = (int)(coord + ray).X() / LocalMap::cell_size;
-                int i = (int)(coord + ray).Y() / LocalMap::cell_size;
+                int j = (int)(coord + ray).X() / Environment::cell_size;
+                int i = (int)(coord + ray).Y() / Environment::cell_size;
                 if (map.Get(i, j) > 0.0)
                         return false;
                 ray.Rotate(DEG2RAD(45.0));
@@ -237,7 +236,7 @@ void Vehicle::ShowTargetSet() const
 
 void Vehicle::ShowActiveWindow() const
 {
-        double offset = window_size / 2 * LocalMap::cell_size;
+        double offset = window_size / 2 * Environment::cell_size;
         glDisable(GL_MULTISAMPLE);
         glBegin(GL_LINE_LOOP);
         glColor3ub(0, 255, 0);

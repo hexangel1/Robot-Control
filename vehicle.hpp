@@ -2,14 +2,14 @@
 #define VEHICLE_HPP_SENTRY
 
 #include "graphobject.hpp"
+#include "environment.hpp"
 #include "vector2d.hpp"
-#include "localmap.hpp"
 
 class Vehicle : public Circle {
         Vector2d speed;
         Vector2d boost;
         Vector2d target;
-        LocalMap active_region;
+        Environment active_region;
         double *obstacle_density;
         bool accident;
         static const int window_size;
@@ -27,14 +27,14 @@ class Vehicle : public Circle {
 public:
         Vehicle(const Vector2d& coord, int colour, const Vector2d& t);
         ~Vehicle();
-        void Update(Vehicle **robots, LocalMap& map);
+        void Update(Vehicle **robots, Environment& map);
         void ShowInfo() const;
         inline Vector2d GetSpeed() const { return speed; }
         inline Vector2d GetBoost() const { return boost; }
         inline Vector2d GetTarget() const { return target; }
         inline bool AccidentHappened() const { return accident; }
 private:
-        void ReadActiveRegion(LocalMap& map);
+        void ReadActiveRegion(Environment& map);
         void BlurActiveRegion();
         void PolarHistogram();
         Vector2d Control() const;
@@ -46,7 +46,7 @@ private:
         Vector2d Direction(int k) const;
         Vector2d Goal(int k) const;
         bool IsTargetReached() const;
-        bool CheckMove(const LocalMap& map) const;
+        bool CheckMove(const Environment& map) const;
         void ShowTargetSet() const;
         void ShowActiveWindow() const;
         void ShowFreeDirections() const;

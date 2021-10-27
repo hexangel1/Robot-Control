@@ -43,10 +43,10 @@ bool Ellipse::IsInside(const Vector2d& point) const
         return pow(v.X() / major_axis, 2) + pow(v.Y() / minor_axis, 2) <= 1;
 }
 
-void Ellipse::Mapping(LocalMap& map, bool s) const
+void Ellipse::Mapping(Environment& map, bool s) const
 {
         double x, y;
-        int size = LocalMap::cell_size;
+        int size = Environment::cell_size;
         for (x = -major_axis; x < major_axis; x++) {
                 for (y = -minor_axis; y < minor_axis; y++) {
                         if (IsInside(coord + Vector2d(x, y))) {
@@ -87,10 +87,10 @@ bool Rectangle::IsInside(const Vector2d& point) const
                v.Y() <= height / 2 && v.Y() >= -height / 2;
 }
 
-void Rectangle::Mapping(LocalMap& map, bool s) const
+void Rectangle::Mapping(Environment& map, bool s) const
 {
         double x, y;
-        int size = LocalMap::cell_size;
+        int size = Environment::cell_size;
         for (x = -width / 2; x < width / 2; x++) {
                 for (y = -height / 2; y < height / 2; y++) {
                         int j = (int)(coord.X() + x) / size;
@@ -135,9 +135,9 @@ bool Triangle::IsInside(const Vector2d& p) const
         return (a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0);
 }
 
-void Triangle::Mapping(LocalMap& map, bool s) const
+void Triangle::Mapping(Environment& map, bool s) const
 {
-        int size = LocalMap::cell_size;
+        int size = Environment::cell_size;
         double x, y;
         double max_x = MAX(va.X(), MAX(vb.X(), vc.X()));
         double min_x = MIN(va.X(), MIN(vb.X(), vc.X()));
