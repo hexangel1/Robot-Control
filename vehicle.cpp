@@ -4,7 +4,7 @@
 
 const int Vehicle::window_size = 33;
 const int Vehicle::histogram_size = 60;
-const int Vehicle::target_points = 60;
+const int Vehicle::target_points = 30;
 const int Vehicle::smooth_factor = 3;
 const int Vehicle::blur_factor = 2;
 const double Vehicle::vehicle_radius = 8.0;
@@ -32,7 +32,7 @@ Vehicle::~Vehicle()
         delete[] obstacle_density;
 }
 
-void Vehicle::Update(GraphObjectItem *objects, LocalMap& map)
+void Vehicle::Update(Vehicle **robots, LocalMap& map)
 {
         if (accident)
                 return;
@@ -45,9 +45,10 @@ void Vehicle::Update(GraphObjectItem *objects, LocalMap& map)
         boost = Control();
         speed.Saturation(0.0, max_vehicle_speed);
         boost.Saturation(0.0, max_vehicle_boost);
-        Mapping(map, true);
-        if (!CheckMove(objects))
+        if (!CheckMove(map))
                 accident = true;
+        Mapping(map, true);
+        (void)robots;
 }
 
 void Vehicle::ShowInfo() const
@@ -207,17 +208,15 @@ bool Vehicle::IsTargetReached() const
         return abs((target - coord).Module() - safe_distance) <= Radius();
 }
 
-bool Vehicle::CheckMove(GraphObjectItem *objects) const
+bool Vehicle::CheckMove(const LocalMap& map) const
 {
-        GraphObjectItem *tmp;
         Vector2D ray(Radius(), 0.0);
-        for (int i = 0; i < 60; i++) {
-                for (tmp = objects; tmp; tmp = tmp->next) {
-                        if (tmp->elem != this &&
-                            tmp->elem->IsInside(coord + ray))
-                                return false;
-                }
-                ray.Rotate(DEG2RAD(6.0));
+        for (int k = 0; k < 8; k++) {
+                int j = (int)(coord + ray).X() / LocalMap::cell_size;
+                int i = (int)(coord + ray).Y() / LocalMap::cell_size;
+                if (map.Get(i, j) > 0.0)
+                        return false;
+                ray.Rotate(DEG2RAD(45.0));
         }
         return true;
 }

@@ -26,7 +26,7 @@ class Vehicle : public Circle {
 public:
         Vehicle(const Vector2D& coord, int colour, const Vector2D& t);
         ~Vehicle();
-        void Update(GraphObjectItem *objects, LocalMap& map);
+        void Update(Vehicle **robots, LocalMap& map);
         void ShowInfo() const;
         inline void SetRegion(int i, int j, double val)
                 { active_region[i * window_size + j] = val; } 
@@ -49,7 +49,7 @@ private:
         Vector2D Direction(int k) const;
         Vector2D Goal(int k) const;
         bool IsTargetReached() const;
-        bool CheckMove(GraphObjectItem *objects) const;
+        bool CheckMove(const LocalMap& map) const;
         void ShowTargetSet() const;
         void ShowActiveWindow() const;
         void ShowFreeDirections() const;

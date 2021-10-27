@@ -50,7 +50,7 @@ void Manager::Update(bool paused, bool info)
 {
         if (!paused) {
                 for (int i = 0; i < amount; i++)
-                        robots[i]->Update(objects, map);
+                        robots[i]->Update(robots, map);
         }
         Display();
         if (info) {
