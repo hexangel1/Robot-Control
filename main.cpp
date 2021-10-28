@@ -73,7 +73,7 @@ static GLFWwindow *initGL(void)
                 return 0;
         }
         glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-        glfwWindowHint(GLFW_SAMPLES, 4);
+        glfwWindowHint(GLFW_SAMPLES, 8);
         window = glfwCreateWindow(window_width, window_height, title, 0, 0);
         if (!window) {
                 glfwTerminate();
