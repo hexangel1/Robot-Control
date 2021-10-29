@@ -7,6 +7,8 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -g -O2 -std=c++98 -D DEBUG=0
 LDLIBS = -lglfw -lGL -lGLEW -lX11 -lXrandr -pthread -lm
 CTAGS = /usr/bin/ctags
+INSTALL = install
+PREFIX = /usr/local
 
 $(PROJECT): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ $(LDLIBS) -o $@
@@ -20,19 +22,27 @@ deps.mk: $(SOURCES) Makefile
 tags: $(SOURCES) $(HEADERS)
 	$(CTAGS) $(SOURCES) $(HEADERS)
 
+run: $(PROJECT)
+	./$(PROJECT)
+
 tar:
 	tar -cf $(PROJECT).tar $(SOURCES) $(HEADERS) Makefile README.txt
 
 clean:
 	rm -f $(PROJECT) *.o deps.mk tags
 
-run: $(PROJECT)
-	./$(PROJECT)
+install: $(PROJECT)
+	$(INSTALL) $(PROJECT) $(PREFIX)/bin
 
+uninstall:
+	rm -f $(PREFIX)/bin/$(PROJECT)
+
+ifneq (unistall, $(MAKECMDGOALS))
 ifneq (clean, $(MAKECMDGOALS))
 ifneq (tags, $(MAKECMDGOALS))
 ifneq (tar, $(MAKECMDGOALS))
 -include deps.mk
+endif
 endif
 endif
 endif
