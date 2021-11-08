@@ -10,6 +10,7 @@ class Manager {
         Vehicle **robots;
         int allocated;
         int amount;
+        unsigned int box;
 public:
         Manager(int width, int height);
         ~Manager();

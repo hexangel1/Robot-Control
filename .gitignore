@@ -1,0 +1,5 @@
+*.o
+*.mk
+tags
+robot-control
+

@@ -72,6 +72,9 @@ static GLFWwindow *initGL(void)
                 fputs("Failed to initialize glfw\n", stderr);
                 return 0;
         }
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
         glfwWindowHint(GLFW_SAMPLES, 8);
         window = glfwCreateWindow(window_width, window_height, title, 0, 0);

@@ -1,4 +1,5 @@
 #include "manager.hpp"
+#include <GLFW/glfw3.h>
 
 Manager::Manager(int width, int height)
         : map(width / Environment::cell_size, height / Environment::cell_size)
@@ -7,6 +8,7 @@ Manager::Manager(int width, int height)
         robots = new Vehicle*[4];
         allocated = 4;
         amount = 0;
+        box = glGenLists(1);
 }
 
 Manager::~Manager()
@@ -23,16 +25,6 @@ Manager::~Manager()
 
 void Manager::Init()
 {
-        AddRobot(new Vehicle(Vector2d(1100, 100), yellow, Vector2d(900, 900)));
-        AddRobot(new Vehicle(Vector2d(1800, 220), magenta, Vector2d(100, 700)));
-        AddRobot(new Vehicle(Vector2d(300, 800), blue, Vector2d(600, 80)));
-        AddRobot(new Vehicle(Vector2d(1800, 850), cyan, Vector2d(100, 150)));
-        AddRobot(new Vehicle(Vector2d(500, 750), orange, Vector2d(900, 100)));
-        AddRobot(new Vehicle(Vector2d(300, 100), white, Vector2d(1800, 700)));
-        AddRobot(new Vehicle(Vector2d(20, 350), rose, Vector2d(1800, 80)));
-        AddRobot(new Vehicle(Vector2d(200, 550), khaki, Vector2d(1800, 500)));
-        AddRobot(new Vehicle(Vector2d(330, 900), indigo, Vector2d(1400, 100)));
-        AddRobot(new Vehicle(Vector2d(1200, 300), dgreen, Vector2d(400, 900)));
         for (int i = 200; i < 1700; i += 400)
                 AddObject(new Rectangle(Vector2d(i, 380), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
@@ -43,8 +35,20 @@ void Manager::Init()
                 AddObject(new Ellipse(Vector2d(i, 700), red, 50, 100));
         for (int i = 400; i < 1700; i += 400)
                 AddObject(new Triangle(Vector2d(i, 450), red, 70));
-        MapInit();
+        glNewList(box, GL_COMPILE);
         Display();
+        AddRobot(new Vehicle(Vector2d(1100, 100), yellow, Vector2d(900, 900)));
+        AddRobot(new Vehicle(Vector2d(1800, 220), magenta, Vector2d(100, 700)));
+        AddRobot(new Vehicle(Vector2d(300, 800), blue, Vector2d(600, 80)));
+        AddRobot(new Vehicle(Vector2d(1800, 850), cyan, Vector2d(100, 150)));
+        AddRobot(new Vehicle(Vector2d(500, 750), orange, Vector2d(900, 100)));
+        AddRobot(new Vehicle(Vector2d(300, 100), white, Vector2d(1800, 700)));
+        AddRobot(new Vehicle(Vector2d(20, 350), rose, Vector2d(1800, 80)));
+        AddRobot(new Vehicle(Vector2d(200, 550), khaki, Vector2d(1800, 500)));
+        AddRobot(new Vehicle(Vector2d(330, 900), indigo, Vector2d(1400, 100)));
+        AddRobot(new Vehicle(Vector2d(1200, 300), dgreen, Vector2d(400, 900)));
+        glEndList();
+        MapInit();
 }
 
 void Manager::Update(bool paused, bool info)
@@ -53,7 +57,9 @@ void Manager::Update(bool paused, bool info)
                 for (int i = 0; i < amount; i++)
                         robots[i]->Update(robots, map);
         }
-        Display();
+        glCallList(box);
+        for (int i = 0; i < amount; i++)
+                robots[i]->Show();
         if (info) {
                 for (int i = 0; i < amount; i++)
                         robots[i]->ShowInfo();
@@ -77,8 +83,11 @@ void Manager::AddObject(GraphObject *ptr)
 
 void Manager::AddRobot(Vehicle *ptr)
 {
+        GraphObject *q;
+        q = new Circle(ptr->GetTarget(), ptr->Colour(), 15.0);
+        q->Show();
         AddObject(ptr);
-        AddObject(new Circle(ptr->GetTarget(), ptr->Colour(), 15.0));
+        AddObject(q);
         if (amount == allocated) {
                 allocated <<= 1;
                 Vehicle **tmp = new Vehicle*[allocated];
