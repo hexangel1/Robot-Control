@@ -1,12 +1,11 @@
 PROJECT = robot-control
-SOURCES = main.cpp manager.cpp vehicle.cpp\
-          graphobject.cpp environment.cpp vector2d.cpp
+SOURCES = $(wildcard *.cpp)
 HEADERS = $(filter-out main.hpp, $(SOURCES:.cpp=.hpp))
 OBJECTS = $(SOURCES:.cpp=.o)
 CXX = g++
 CXXFLAGS = -Wall -Wextra -g -O2 -std=c++98 -D DEBUG=0
 LDLIBS = -lglfw -lGL -lGLEW -lX11 -lXrandr -pthread -lm
-CTAGS = /usr/bin/ctags
+CTAGS = ctags
 INSTALL = install
 PREFIX = /usr/local
 
@@ -24,6 +23,9 @@ tags: $(SOURCES) $(HEADERS)
 
 run: $(PROJECT)
 	./$(PROJECT)
+
+memcheck:
+	valgrind -s --track-origins=yes --leak-check=full ./$(PROJECT)
 
 tar:
 	tar -cf $(PROJECT).tar $(SOURCES) $(HEADERS) Makefile README.txt

@@ -6,13 +6,16 @@
 #include "vector2d.hpp"
 
 class Vehicle : public Circle {
-        Vector2d speed;
-        Vector2d boost;
+        double angle;
+        double speed;
+        double boost;
+        double angular_speed;
         Vector2d target;
         Environment active_region;
         double *obstacle_density;
         bool accident;
         static const int window_size;
+        static const int view_sectors;
         static const int histogram_size;
         static const int target_points;
         static const int smooth_factor;
@@ -27,17 +30,17 @@ class Vehicle : public Circle {
 public:
         Vehicle(const Vector2d& coord, int colour, const Vector2d& t);
         ~Vehicle();
+        double GetAngel(int k) const;
+        int GetSector(double phi) const;
         void Update(Vehicle **robots, Environment& map);
         void ShowInfo() const;
-        inline Vector2d GetSpeed() const { return speed; }
-        inline Vector2d GetBoost() const { return boost; }
         inline Vector2d GetTarget() const { return target; }
         inline bool AccidentHappened() const { return accident; }
 private:
         void ReadActiveRegion(Environment& map);
         void BlurActiveRegion();
         void PolarHistogram();
-        Vector2d Control() const;
+        void Control();
         int SteerControl() const;
         double SpeedControl(int k) const;
         double Score(int k) const;

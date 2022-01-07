@@ -2,7 +2,8 @@
 #include <GLFW/glfw3.h>
 #include "vehicle.hpp"
 
-const int Vehicle::window_size = 33;
+const int Vehicle::window_size = 43;
+const int Vehicle::view_sectors = 8;
 const int Vehicle::histogram_size = 60;
 const int Vehicle::target_points = 30;
 const int Vehicle::smooth_factor = 3;
@@ -10,14 +11,15 @@ const int Vehicle::blur_factor = 2;
 const double Vehicle::vehicle_radius = 8.0;
 const double Vehicle::speed_constant = 0.015;
 const double Vehicle::max_cell_weight = 100.0;
-const double Vehicle::max_vehicle_speed = 45.0;
+const double Vehicle::max_vehicle_speed = 40.0;
 const double Vehicle::max_vehicle_boost = 1.0;
 const double Vehicle::max_obstacle_density = 100.0;
 const double Vehicle::safe_distance = 80.0;
 
 Vehicle::Vehicle(const Vector2d& coord, int colour, const Vector2d& t)
         : Circle(coord, colour, vehicle_radius),
-        speed(0.0, 0.0), boost(0.0, 0.0), target(t),
+        angle(0.0), speed(0.0), boost(0.0),
+        angular_speed(0.0), target(t),
         active_region(window_size, window_size)
 {
         obstacle_density = new double[histogram_size];
@@ -39,11 +41,16 @@ void Vehicle::Update(Vehicle **robots, Environment& map)
         ReadActiveRegion(map);
         BlurActiveRegion();
         PolarHistogram();
-        coord += speed_constant * speed;
+        coord += speed_constant * speed * Vector2d(cos(angle), -sin(angle));
         speed += boost;
-        boost = Control();
-        speed.Saturation(0.0, max_vehicle_speed);
-        boost.Saturation(0.0, max_vehicle_boost);
+        angle += angular_speed;
+        Control();
+        speed = MIN(speed, max_vehicle_speed);
+        speed = MAX(speed, 0.0);
+        while (angle > 2 * PI)
+                angle -= 2 * PI;
+        while (angle < 0)
+                angle += 2 * PI;
         if (!CheckMove(map))
                 accident = true;
         Mapping(map, true);
@@ -115,11 +122,35 @@ void Vehicle::PolarHistogram()
         }
 }
 
-Vector2d Vehicle::Control() const
+double sat(double val, double a, double b)
 {
+        if (val >= a && val <= b)
+                return val;
+        return val > b ? b : a;
+}
+
+void Vehicle::Control()
+{
+        if (IsTargetReached()) {
+                speed = 0;
+                angular_speed = 0;
+                return;
+        }
         int k = SteerControl();
-        double s = SpeedControl(k);
-        return IsTargetReached() ? -speed : Direction(k) * s - speed;
+        boost = SpeedControl(k) - speed;
+        boost = sat(boost, -2.0, 2.0);
+        angular_speed = GetAngel(k) - angle;
+        angular_speed = sat(angular_speed, -0.02, 0.02);
+}
+
+double Vehicle::GetAngel(int k) const
+{
+        return 2 * PI * k / (double)histogram_size;
+}
+
+int Vehicle::GetSector(double phi) const
+{
+        return phi / (2 * PI) * (double)histogram_size;
 }
 
 int Vehicle::SteerControl() const
@@ -127,8 +158,10 @@ int Vehicle::SteerControl() const
         double min, score, best_score;
         int k, best = -1;
         min = MinDensity();
-        for (k = 0; k < histogram_size; k++) {
-                if (obstacle_density[k] == min) {
+        int s = GetSector(angle);
+        for (k = s - view_sectors; k <= s + view_sectors; k++) {
+                if (obstacle_density[(histogram_size + k) % histogram_size] 
+                                == min) {
                         score = Score(k);
                         if (best == -1 || score > best_score) {
                                 best_score = score;
@@ -141,6 +174,7 @@ int Vehicle::SteerControl() const
 
 double Vehicle::SpeedControl(int k) const
 {
+        k = (k + histogram_size) % histogram_size;
         double h = MIN(obstacle_density[k], max_obstacle_density);
         return max_vehicle_speed * (1.0 - h / max_obstacle_density);
 }
@@ -162,10 +196,14 @@ double Vehicle::Score(int k) const
 double Vehicle::MinDensity() const
 {
         int k;
-        double min = obstacle_density[0];
-        for (k = 1; k < histogram_size; k++) {
-                if (obstacle_density[k] < min)
-                        min = obstacle_density[k];
+        int s = GetSector(angle);
+        double min = obstacle_density[(histogram_size + s - view_sectors)
+                                         % histogram_size];
+        for (k = s - view_sectors + 1; k <= s + view_sectors; k++) {
+                if (obstacle_density[(histogram_size + k) % histogram_size] 
+                                        < min)
+                        min = obstacle_density[(histogram_size + k)
+                                                 % histogram_size];
         }
         return min;
 }
@@ -254,15 +292,23 @@ void Vehicle::ShowFreeDirections() const
         double min = MinDensity();
         glBegin(GL_LINES);
         glColor3ub(0, 255, 0);
-        for (k = 0; k < histogram_size; k++) {
-                if (obstacle_density[k] == min) {
+        int s = GetSector(angle);
+        for (k = s - view_sectors; k <= s + view_sectors; k++) {
+                if (obstacle_density[(histogram_size + k) 
+                                % histogram_size] == min) {
                         Vector2d dir = Direction(k);
-                        Vector2d a = coord + dir * (Radius() + 5.0);
+                        Vector2d a = coord + dir * (Radius() + 8.0);
                         Vector2d b = coord + dir * Radius() * 10.0;
                         glVertex2f(a.X(), a.Y());
                         glVertex2f(b.X(), b.Y());
                 }
         }
+        glColor3ub(255, 0, 0);
+        Vector2d dir = Direction(s);
+        Vector2d a = coord + dir * (Radius() + 8.0);
+        Vector2d b = coord + dir * Radius() * 10.0;
+        glVertex2f(a.X(), a.Y());
+        glVertex2f(b.X(), b.Y());
         glEnd();
 }
 
