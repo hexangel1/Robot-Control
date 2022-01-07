@@ -14,8 +14,7 @@ struct InputState {
 };
 
 static InputState Input;
-
-static const char title[] = "Robot Control Simulator";
+static const char *title = "Robot Control Simulator";
 static const int window_width = 1920;
 static const int window_height = 1000;
 
@@ -65,7 +64,7 @@ static void mouse_clicked(GLFWwindow *window, int button, int action, int mode)
         (void)mode;
 }
 
-static GLFWwindow *initGL(void)
+static GLFWwindow *init_gl_context(void)
 {
         GLFWwindow *window;
         if (!glfwInit()) {
@@ -106,7 +105,7 @@ static void setup_view(void)
         glViewport(0.0, 0.0, window_width, window_height);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0.0, window_width, window_height, 0.0, -1.0, 1.0);
+        glOrtho(0.0, window_width, 0.0, window_height, 0.0, 1.0);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 }
 
@@ -121,7 +120,7 @@ static void init_input(void)
         Input.last_y = 0.0;
 };
 
-static void EventHandler(bool& paused, bool& info)
+static void process_input(bool& paused, bool& info)
 {
         static int key_not_active = 0;
         if (!key_not_active) {
@@ -138,7 +137,7 @@ static void EventHandler(bool& paused, bool& info)
                 key_not_active--;
 }
 
-static void mainloop(GLFWwindow *window)
+static void main_loop(GLFWwindow *window)
 {
         Manager Model(window_width, window_height);
         bool paused = true;
@@ -148,7 +147,7 @@ static void mainloop(GLFWwindow *window)
                 glfwPollEvents();
                 if (glfwWindowShouldClose(window))
                         break;
-                EventHandler(paused, info);
+                process_input(paused, info);
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 Model.Update(paused, info);
@@ -165,12 +164,12 @@ static void mainloop(GLFWwindow *window)
 int main(void)
 {
         GLFWwindow *window;
-        window = initGL();
+        window = init_gl_context();
         if (!window)
                 return 1;
         setup_view();
         init_input();
-        mainloop(window);
+        main_loop(window);
         glfwDestroyWindow(window);
         glfwTerminate();
         return 0;

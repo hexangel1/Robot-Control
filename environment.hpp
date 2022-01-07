@@ -8,6 +8,9 @@ class Environment {
 public:
         Environment(int w, int h);
         ~Environment();
+        void CopyRegion(const Environment& map, double offx, double offy);
+        double Angle(int i, int j) const;
+        double Distance(int i, int j) const;
         inline void Set(int i, int j, double v) {
                 if (0 <= i && i < height && 0 <= j && j < width)
                         map[i * width + j] = v;

@@ -1,4 +1,7 @@
+#include <cmath>
+#include "vector2d.hpp"
 #include "environment.hpp"
+
 #if DEBUG == 1
         #include <GLFW/glfw3.h>
 #endif
@@ -17,6 +20,29 @@ Environment::Environment(int w, int h)
 Environment::~Environment()
 {
         delete[] map;
+}
+
+void Environment::CopyRegion(const Environment& map, double offx, double offy)
+{
+        int offsetx = (int)offx / cell_size - width / 2;
+        int offsety = (int)offy / cell_size - height / 2;
+        for (int i = 0; i < height; i++) {
+                for (int j = 0; j < width; j++) {
+                        double v = map.Get(offsety + i, offsetx + j);
+                        Set(i, j, v);
+                }
+        }
+}
+
+double Environment::Angle(int i, int j) const
+{
+        double phi = atan2(i - height / 2, j - width / 2);
+        return phi < 0.0 ? phi + 2 * PI : phi;
+}
+
+double Environment::Distance(int i, int j) const
+{
+        return sqrt(pow(i - height / 2, 2) + pow(j - width / 2, 2));
 }
 
 #if DEBUG == 1

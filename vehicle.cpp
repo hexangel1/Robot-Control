@@ -2,35 +2,36 @@
 #include <GLFW/glfw3.h>
 #include "vehicle.hpp"
 
-const int Vehicle::window_size = 43;
-const int Vehicle::view_sectors = 8;
-const int Vehicle::histogram_size = 60;
+const int Vehicle::window_size = 35;
+const int Vehicle::view_sectors = 9;
+const int Vehicle::histogram_size = 72;
 const int Vehicle::target_points = 30;
-const int Vehicle::smooth_factor = 3;
-const int Vehicle::blur_factor = 2;
+const int Vehicle::blur_factor = 3;
 const double Vehicle::vehicle_radius = 8.0;
 const double Vehicle::speed_constant = 0.015;
-const double Vehicle::max_cell_weight = 100.0;
-const double Vehicle::max_vehicle_speed = 40.0;
+const double Vehicle::max_vehicle_speed = 30.0;
 const double Vehicle::max_vehicle_boost = 1.0;
-const double Vehicle::max_obstacle_density = 100.0;
+const double Vehicle::max_obstacle_density = 80.0;
 const double Vehicle::safe_distance = 80.0;
+
+double sat(double val, double a, double b)
+{
+        if (val >= a && val <= b)
+                return val;
+        return val > b ? b : a;
+}
 
 Vehicle::Vehicle(const Vector2d& coord, int colour, const Vector2d& t)
         : Circle(coord, colour, vehicle_radius),
-        angle(0.0), speed(0.0), boost(0.0),
-        angular_speed(0.0), target(t),
-        active_region(window_size, window_size)
+        target(t),
+        active_region(window_size, window_size),
+        obstacle_density(histogram_size)
 {
-        obstacle_density = new double[histogram_size];
-        for (int k = 0; k < histogram_size; k++)
-                obstacle_density[k] = 0.0;
+        angle = 0.0;
+        speed = 0.0;
+        boost = 0.0;
+        angular_speed = 0.0;
         accident = false;
-}
-
-Vehicle::~Vehicle()
-{
-        delete[] obstacle_density;
 }
 
 void Vehicle::Update(Vehicle **robots, Environment& map)
@@ -38,19 +39,15 @@ void Vehicle::Update(Vehicle **robots, Environment& map)
         if (accident)
                 return;
         Mapping(map, false);
-        ReadActiveRegion(map);
+        active_region.CopyRegion(map, coord.X(), coord.Y());
         BlurActiveRegion();
-        PolarHistogram();
-        coord += speed_constant * speed * Vector2d(cos(angle), -sin(angle));
+        obstacle_density.Build(active_region);
+        coord += speed_constant * speed * Vector2d(cos(angle), sin(angle));
         speed += boost;
         angle += angular_speed;
+        angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
+        speed = sat(speed, 0.0, max_vehicle_speed);
         Control();
-        speed = MIN(speed, max_vehicle_speed);
-        speed = MAX(speed, 0.0);
-        while (angle > 2 * PI)
-                angle -= 2 * PI;
-        while (angle < 0)
-                angle += 2 * PI;
         if (!CheckMove(map))
                 accident = true;
         Mapping(map, true);
@@ -62,19 +59,6 @@ void Vehicle::ShowInfo() const
         ShowTargetSet();
         ShowActiveWindow();
         ShowFreeDirections();
-}
-
-void Vehicle::ReadActiveRegion(Environment& map)
-{
-        int i, j, offsetx, offsety;
-        offsety = (int)coord.Y() / Environment::cell_size - window_size / 2;
-        offsetx = (int)coord.X() / Environment::cell_size - window_size / 2;
-        for (i = 0; i < window_size; i++) {
-                for (j = 0; j < window_size; j++) {
-                        double v = map.Get(offsety + i, offsetx + j);
-                        active_region.Set(i, j, v);
-                }
-        }
 }
 
 void Vehicle::BlurActiveRegion()
@@ -93,40 +77,6 @@ void Vehicle::BlurActiveRegion()
                                 active_region.Set(i, j, tmp[i][j]);
                 }
         }
-}
-
-void Vehicle::PolarHistogram()
-{
-        double a = max_cell_weight;
-        double b = a / (((double)window_size - 1.0) * sqrt(2.0) / 2.0);
-        double h[histogram_size];
-        for (int k = 0; k < histogram_size; k++)
-                h[k] = 0.0;
-        for (int i = 0; i < window_size; i++) {
-                for (int j = 0; j < window_size; j++) {
-                        int k = Sector(i, j);
-                        double d = Distance(i, j);
-                        h[k] += pow(active_region.Get(i, j), 2) * (a - b * d);
-                }
-        }
-        for (int k = 0; k < histogram_size; k++) {
-                double sum = 0.0;
-                obstacle_density[k] = 0.0;
-                for (int i = -smooth_factor; i <= smooth_factor; i++) {
-                        int r = histogram_size;
-                        double weight = smooth_factor + 1 - abs(i);
-                        obstacle_density[k] += weight * h[(r + k - i) % r];
-                        sum += weight;
-                }
-                obstacle_density[k] /= sum;
-        }
-}
-
-double sat(double val, double a, double b)
-{
-        if (val >= a && val <= b)
-                return val;
-        return val > b ? b : a;
 }
 
 void Vehicle::Control()
@@ -160,8 +110,7 @@ int Vehicle::SteerControl() const
         min = MinDensity();
         int s = GetSector(angle);
         for (k = s - view_sectors; k <= s + view_sectors; k++) {
-                if (obstacle_density[(histogram_size + k) % histogram_size] 
-                                == min) {
+                if (obstacle_density[k] == min) {
                         score = Score(k);
                         if (best == -1 || score > best_score) {
                                 best_score = score;
@@ -174,7 +123,6 @@ int Vehicle::SteerControl() const
 
 double Vehicle::SpeedControl(int k) const
 {
-        k = (k + histogram_size) % histogram_size;
         double h = MIN(obstacle_density[k], max_obstacle_density);
         return max_vehicle_speed * (1.0 - h / max_obstacle_density);
 }
@@ -197,13 +145,10 @@ double Vehicle::MinDensity() const
 {
         int k;
         int s = GetSector(angle);
-        double min = obstacle_density[(histogram_size + s - view_sectors)
-                                         % histogram_size];
+        double min = obstacle_density[s - view_sectors];
         for (k = s - view_sectors + 1; k <= s + view_sectors; k++) {
-                if (obstacle_density[(histogram_size + k) % histogram_size] 
-                                        < min)
-                        min = obstacle_density[(histogram_size + k)
-                                                 % histogram_size];
+                if (obstacle_density[k] < min)
+                        min = obstacle_density[k];
         }
         return min;
 }
@@ -230,7 +175,7 @@ Vector2d Vehicle::Direction(int k) const
 {
         const double step = 360.0 / histogram_size;
         Vector2d dir(1.0, 0.0);
-        dir.Rotate(DEG2RAD(-k * step - step / 2.0));
+        dir.Rotate(DEG2RAD(k * step + step / 2.0));
         return dir;
 }
 
@@ -238,7 +183,7 @@ Vector2d Vehicle::Goal(int k) const
 {
         const double step = 2 * PI / target_points;
         Vector2d dir(1.0, 0.0);
-        dir.Rotate(-k * step);
+        dir.Rotate(k * step);
         return target + safe_distance * dir;
 }
 
@@ -294,36 +239,14 @@ void Vehicle::ShowFreeDirections() const
         glColor3ub(0, 255, 0);
         int s = GetSector(angle);
         for (k = s - view_sectors; k <= s + view_sectors; k++) {
-                if (obstacle_density[(histogram_size + k) 
-                                % histogram_size] == min) {
-                        Vector2d dir = Direction(k);
-                        Vector2d a = coord + dir * (Radius() + 8.0);
-                        Vector2d b = coord + dir * Radius() * 10.0;
-                        glVertex2f(a.X(), a.Y());
-                        glVertex2f(b.X(), b.Y());
-                }
+                Vector2d dir = Direction(k);
+                Vector2d a = coord + dir * (Radius() + 8.0);
+                Vector2d b = coord + dir * Radius() * 10.0;
+                int col = obstacle_density[k] == min ? green : red;
+                glColor3ub(RED(col), GREEN(col), BLUE(col));
+                glVertex2f(a.X(), a.Y());
+                glVertex2f(b.X(), b.Y());
         }
-        glColor3ub(255, 0, 0);
-        Vector2d dir = Direction(s);
-        Vector2d a = coord + dir * (Radius() + 8.0);
-        Vector2d b = coord + dir * Radius() * 10.0;
-        glVertex2f(a.X(), a.Y());
-        glVertex2f(b.X(), b.Y());
         glEnd();
-}
-
-int Vehicle::Sector(int i, int j)
-{
-        double alpha, phi;
-        alpha = 360.0 / histogram_size;
-        phi = atan2(window_size / 2 - i, j - window_size / 2);
-        if (phi < 0.0)
-                phi += 2.0 * PI;
-        return (int)trunc(RAD2DEG(phi) / alpha);
-}
-
-double Vehicle::Distance(int i, int j)
-{
-        return sqrt(pow(i - window_size / 2, 2) + pow(j - window_size / 2, 2));
 }
 

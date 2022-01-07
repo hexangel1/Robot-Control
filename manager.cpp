@@ -26,27 +26,27 @@ Manager::~Manager()
 void Manager::Init()
 {
         for (int i = 200; i < 1700; i += 400)
-                AddObject(new Rectangle(Vector2d(i, 380), red, 100, 200));
+                AddObject(new Rectangle(Vector2d(i, 620), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
-                AddObject(new Ellipse(Vector2d(i, 180), red, 100, 50));
+                AddObject(new Ellipse(Vector2d(i, 820), red, 100, 50));
         for (int i = 200; i < 1700; i += 400)
-                AddObject(new Rectangle(Vector2d(i, 800), red, 90, 200));
+                AddObject(new Rectangle(Vector2d(i, 200), red, 90, 200));
         for (int i = 400; i < 1700; i += 400)
-                AddObject(new Ellipse(Vector2d(i, 700), red, 50, 100));
+                AddObject(new Ellipse(Vector2d(i, 300), red, 50, 100));
         for (int i = 400; i < 1700; i += 400)
-                AddObject(new Triangle(Vector2d(i, 450), red, 70));
+                AddObject(new Triangle(Vector2d(i, 550), red, 70));
         glNewList(box, GL_COMPILE);
         Display();
-        AddRobot(new Vehicle(Vector2d(1100, 100), yellow, Vector2d(900, 900)));
-        AddRobot(new Vehicle(Vector2d(1800, 220), magenta, Vector2d(100, 700)));
-        AddRobot(new Vehicle(Vector2d(300, 800), blue, Vector2d(600, 80)));
-        AddRobot(new Vehicle(Vector2d(1800, 850), cyan, Vector2d(100, 150)));
-        AddRobot(new Vehicle(Vector2d(500, 750), orange, Vector2d(900, 100)));
-        AddRobot(new Vehicle(Vector2d(300, 100), white, Vector2d(1800, 700)));
-        AddRobot(new Vehicle(Vector2d(20, 350), rose, Vector2d(1800, 80)));
-        AddRobot(new Vehicle(Vector2d(200, 550), khaki, Vector2d(1800, 500)));
-        AddRobot(new Vehicle(Vector2d(330, 900), indigo, Vector2d(1400, 100)));
-        AddRobot(new Vehicle(Vector2d(1200, 300), dgreen, Vector2d(400, 900)));
+        AddRobot(new Vehicle(Vector2d(1100, 900), yellow, Vector2d(900, 100)));
+        AddRobot(new Vehicle(Vector2d(1800, 780), magenta, Vector2d(100, 300)));
+        AddRobot(new Vehicle(Vector2d(300, 200), blue, Vector2d(600, 920)));
+        AddRobot(new Vehicle(Vector2d(1800, 150), cyan, Vector2d(100, 850)));
+        AddRobot(new Vehicle(Vector2d(500, 250), orange, Vector2d(900, 900)));
+        AddRobot(new Vehicle(Vector2d(300, 900), white, Vector2d(1800, 300)));
+        AddRobot(new Vehicle(Vector2d(20, 650), rose, Vector2d(1800, 920)));
+        AddRobot(new Vehicle(Vector2d(200, 450), khaki, Vector2d(1800, 500)));
+        AddRobot(new Vehicle(Vector2d(330, 100), indigo, Vector2d(1400, 900)));
+        AddRobot(new Vehicle(Vector2d(1200, 700), dgreen, Vector2d(400, 100)));
         glEndList();
         MapInit();
 }
