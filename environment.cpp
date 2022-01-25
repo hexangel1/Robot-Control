@@ -36,8 +36,7 @@ void Environment::CopyRegion(const Environment& map, double offx, double offy)
 
 double Environment::Angle(int i, int j) const
 {
-        double phi = atan2(i - height / 2, j - width / 2);
-        return phi < 0.0 ? phi + 2 * PI : phi;
+        return ANGLE_2PI(atan2(i - height / 2, j - width / 2));
 }
 
 double Environment::Distance(int i, int j) const

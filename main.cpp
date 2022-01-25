@@ -1,11 +1,13 @@
 #include <cstdio>
 #include <cstdlib>
+#include <cassert>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "manager.hpp"
 
 struct InputState {
         bool keys[1024];
+        bool lock[1024];
         bool mouse_captured;
         bool captured_now;
         bool first_mouse;
@@ -14,7 +16,7 @@ struct InputState {
 };
 
 static InputState Input;
-static const char *title = "Robot Control Simulator";
+static const char *const title = "Robot Control Simulator";
 static const int window_width = 1920;
 static const int window_height = 1000;
 
@@ -33,10 +35,12 @@ static void key_pressed(GLFWwindow *window, int key, int code,
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 break;
         default:
-                if (action == GLFW_PRESS)
+                if (action == GLFW_PRESS) {
                         Input.keys[key] = true;
-                else if (action == GLFW_RELEASE)
+                        Input.lock[key] = false;
+                } else if (action == GLFW_RELEASE) {
                         Input.keys[key] = false;
+                }
         }
         (void)code;
         (void)mode;
@@ -111,8 +115,10 @@ static void setup_view(void)
 
 static void init_input(void)
 {
-        for (int i = 0; i < 1024; i++)
+        for (int i = 0; i < 1024; i++) {
                 Input.keys[i] = false;
+                Input.lock[i] = false;
+        }
         Input.mouse_captured = false;
         Input.captured_now = false;
         Input.first_mouse = true;
@@ -120,21 +126,26 @@ static void init_input(void)
         Input.last_y = 0.0;
 };
 
-static void process_input(bool& paused, bool& info)
+static void process_input(bool& paused, bool& info, int& speed)
 {
-        static int key_not_active = 0;
-        if (!key_not_active) {
-                if (Input.keys['q'] || Input.keys['Q']) {
-                        key_not_active = 10;
-                        paused = !paused;
-                }
-                if (Input.keys['e'] || Input.keys['E']) {
-                        key_not_active = 10;
-                        info = !info;
-                }
+        if (Input.keys['Q'] && !Input.lock['Q']) {
+                Input.lock['Q'] = true;
+                paused = !paused;
         }
-        if (key_not_active)
-                key_not_active--;
+        if (Input.keys['E'] && !Input.lock['E']) {
+                Input.lock['E'] = true;
+                info = !info;
+        }
+        if (Input.keys['F'] && !Input.lock['F']) {
+                Input.lock['F'] = true;
+                if (speed < 8)
+                        speed++;
+        }
+        if (Input.keys['S'] && !Input.lock['S']) {
+                Input.lock['S'] = true;
+                if (speed > 0)
+                        speed--;
+        }
 }
 
 static void main_loop(GLFWwindow *window)
@@ -142,26 +153,25 @@ static void main_loop(GLFWwindow *window)
         Manager Model(window_width, window_height);
         bool paused = true;
         bool info = false;
+        int speed = 1;
         Model.Init();
         for (;;) {
                 glfwPollEvents();
                 if (glfwWindowShouldClose(window))
                         break;
-                process_input(paused, info);
+                process_input(paused, info, speed);
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                Model.Update(paused, info);
+                for (int i = 0; !paused && i < speed; i++)
+                        Model.Update();
+                Model.Show(info);
                 glFlush();
-                GLenum err = glGetError();
-                if (err != GL_NO_ERROR) {
-                        fprintf(stderr, "OpenGL error: %i\n", err);
-                        break;
-                }
+                assert(glGetError() == GL_NO_ERROR);
                 glfwSwapBuffers(window);
         }
 }
 
-int main(void)
+int main()
 {
         GLFWwindow *window;
         window = init_gl_context();

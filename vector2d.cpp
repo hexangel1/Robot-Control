@@ -42,13 +42,8 @@ double Vector2d::Norm(int p) const
         if (p == 2)
                 return sqrt(x * x + y * y);
         if (p == 3)
-                return MAX(abs(x), abs(y));
+                return fmax(abs(x), abs(y));
         return -1.0;
-}
-
-double Vector2d::Module() const
-{
-        return Norm(2);
 }
 
 void Vector2d::Print() const

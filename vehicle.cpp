@@ -4,22 +4,15 @@
 
 const int Vehicle::window_size = 35;
 const int Vehicle::view_sectors = 9;
-const int Vehicle::histogram_size = 72;
+const int Vehicle::histogram_size = 73;
 const int Vehicle::target_points = 30;
 const int Vehicle::blur_factor = 3;
 const double Vehicle::vehicle_radius = 8.0;
 const double Vehicle::speed_constant = 0.015;
-const double Vehicle::max_vehicle_speed = 30.0;
-const double Vehicle::max_vehicle_boost = 1.0;
-const double Vehicle::max_obstacle_density = 80.0;
+const double Vehicle::max_vehicle_speed = 40.0;
+const double Vehicle::max_vehicle_boost = 0.8;
+const double Vehicle::max_obstacle_density = 110.0;
 const double Vehicle::safe_distance = 80.0;
-
-double sat(double val, double a, double b)
-{
-        if (val >= a && val <= b)
-                return val;
-        return val > b ? b : a;
-}
 
 Vehicle::Vehicle(const Vector2d& coord, int colour, const Vector2d& t)
         : Circle(coord, colour, vehicle_radius),
@@ -32,6 +25,7 @@ Vehicle::Vehicle(const Vector2d& coord, int colour, const Vector2d& t)
         boost = 0.0;
         angular_speed = 0.0;
         accident = false;
+        ctrl = 0;
 }
 
 void Vehicle::Update(Vehicle **robots, Environment& map)
@@ -46,7 +40,7 @@ void Vehicle::Update(Vehicle **robots, Environment& map)
         speed += boost;
         angle += angular_speed;
         angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
-        speed = sat(speed, 0.0, max_vehicle_speed);
+        speed = SAT(speed, 0.0, max_vehicle_speed);
         Control();
         if (!CheckMove(map))
                 accident = true;
@@ -86,11 +80,16 @@ void Vehicle::Control()
                 angular_speed = 0;
                 return;
         }
-        int k = SteerControl();
-        boost = SpeedControl(k) - speed;
-        boost = sat(boost, -2.0, 2.0);
+        int k;
+        if (speed == 0.0)
+               k = GetSector(angle) - view_sectors;
+        else
+               k = SteerControl();
+        ctrl = k;
+        boost = SpeedControl(GetSector(angle)) - speed;
+        boost = SAT(boost, -1.0, 1.0);
         angular_speed = GetAngel(k) - angle;
-        angular_speed = sat(angular_speed, -0.02, 0.02);
+        angular_speed = SAT(angular_speed, -0.01, 0.01);
 }
 
 double Vehicle::GetAngel(int k) const
@@ -123,13 +122,14 @@ int Vehicle::SteerControl() const
 
 double Vehicle::SpeedControl(int k) const
 {
-        double h = MIN(obstacle_density[k], max_obstacle_density);
+        double h = fmin(obstacle_density[k], max_obstacle_density);
         return max_vehicle_speed * (1.0 - h / max_obstacle_density);
 }
 
 double Vehicle::Score(int k) const
 {
         Vector2d dir = Direction(k);
+        return (target - coord) * dir;
         double score, best_score = -1.0;
         for (int i = 0; i < target_points; i++) {
                 Vector2d goal = Goal(i) - coord;
@@ -243,6 +243,8 @@ void Vehicle::ShowFreeDirections() const
                 Vector2d a = coord + dir * (Radius() + 8.0);
                 Vector2d b = coord + dir * Radius() * 10.0;
                 int col = obstacle_density[k] == min ? green : red;
+                if (k == ctrl)
+                        col = blue;
                 glColor3ub(RED(col), GREEN(col), BLUE(col));
                 glVertex2f(a.X(), a.Y());
                 glVertex2f(b.X(), b.Y());

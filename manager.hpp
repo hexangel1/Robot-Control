@@ -15,7 +15,8 @@ public:
         Manager(int width, int height);
         ~Manager();
         void Init();
-        void Update(bool paused, bool info);
+        void Update();
+        void Show(bool info);
 private:
         void MapInit();
         void AddObject(GraphObject *ptr);

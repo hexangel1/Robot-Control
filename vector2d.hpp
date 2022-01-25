@@ -1,11 +1,12 @@
 #ifndef VECTOR2D_HPP_SENTRY
 #define VECTOR2D_HPP_SENTRY
 
+#include <cmath>
 #define PI 3.1415926535
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define RAD2DEG(param) ((param) * 180.0 / 3.1415926535)
-#define DEG2RAD(param) ((param) * 3.1415926535 / 180.0)
+#define SAT(v, a, b) (v) >= (a) && (v) <= (b) ? (v) : ((v) > (b) ? (b) : (a));
+#define ANGLE_2PI(v) ((v) < 0.0 ? (v) + 2 * PI : (v))
+#define RAD2DEG(param) ((param) * 180.0 / PI)
+#define DEG2RAD(param) ((param) * PI / 180.0)
 
 class Vector2d {
         double x;
@@ -20,7 +21,8 @@ public:
         void Saturation(double min, double max);
         void Print() const;
         double Norm(int p) const;
-        double Module() const;
+        double Module() const { return sqrt(x * x + y * y); }
+        double Argument() const { return ANGLE_2PI(atan2(y, x)); }
         inline double X() const { return x; }
         inline double Y() const { return y; }
         const Vector2d& operator=(const Vector2d& v);

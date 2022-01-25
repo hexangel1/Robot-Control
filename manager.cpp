@@ -25,6 +25,7 @@ Manager::~Manager()
 
 void Manager::Init()
 {
+#ifndef TEST_VERSION
         for (int i = 200; i < 1700; i += 400)
                 AddObject(new Rectangle(Vector2d(i, 620), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
@@ -35,8 +36,20 @@ void Manager::Init()
                 AddObject(new Ellipse(Vector2d(i, 300), red, 50, 100));
         for (int i = 400; i < 1700; i += 400)
                 AddObject(new Triangle(Vector2d(i, 550), red, 70));
+#else
+        double x = 1000, y = 700;
+        AddObject(new Triangle(Vector2d(x-200, y),
+                               Vector2d(x, y),
+                               Vector2d(x-200, y-100), 
+                               red));
+        AddObject(new Triangle(Vector2d(x+200, y),
+                               Vector2d(x, y),
+                               Vector2d(x+200, y-100), 
+                               red));
+#endif
         glNewList(box, GL_COMPILE);
         Display();
+#ifndef TEST_VERSION
         AddRobot(new Vehicle(Vector2d(1100, 900), yellow, Vector2d(900, 100)));
         AddRobot(new Vehicle(Vector2d(1800, 780), magenta, Vector2d(100, 300)));
         AddRobot(new Vehicle(Vector2d(300, 200), blue, Vector2d(600, 920)));
@@ -47,16 +60,21 @@ void Manager::Init()
         AddRobot(new Vehicle(Vector2d(200, 450), khaki, Vector2d(1800, 500)));
         AddRobot(new Vehicle(Vector2d(330, 100), indigo, Vector2d(1400, 900)));
         AddRobot(new Vehicle(Vector2d(1200, 700), dgreen, Vector2d(400, 100)));
+#else
+        AddRobot(new Vehicle(Vector2d(1000, 100), yellow, Vector2d(1000, 900)));
+#endif
         glEndList();
         MapInit();
 }
 
-void Manager::Update(bool paused, bool info)
+void Manager::Update()
 {
-        if (!paused) {
-                for (int i = 0; i < amount; i++)
-                        robots[i]->Update(robots, map);
-        }
+        for (int i = 0; i < amount; i++)
+                robots[i]->Update(robots, map);
+}
+
+void Manager::Show(bool info)
+{
         glCallList(box);
         for (int i = 0; i < amount; i++)
                 robots[i]->Show();

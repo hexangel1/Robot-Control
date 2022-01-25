@@ -139,10 +139,10 @@ void Triangle::Mapping(Environment& map, bool s) const
 {
         int size = Environment::cell_size;
         double x, y;
-        double max_x = MAX(va.X(), MAX(vb.X(), vc.X()));
-        double min_x = MIN(va.X(), MIN(vb.X(), vc.X()));
-        double max_y = MAX(va.Y(), MAX(vb.Y(), vc.Y()));
-        double min_y = MIN(va.Y(), MIN(vb.Y(), vc.Y()));
+        double max_x = fmax(va.X(), fmax(vb.X(), vc.X()));
+        double min_x = fmin(va.X(), fmin(vb.X(), vc.X()));
+        double max_y = fmax(va.Y(), fmax(vb.Y(), vc.Y()));
+        double min_y = fmin(va.Y(), fmin(vb.Y(), vc.Y()));
         for (x = min_x; x <= max_x; x += 1.0) {
                 for (y = min_y; y <= max_y; y += 1.0) {
                         if (IsInside(coord + Vector2d(x, y))) {

@@ -11,6 +11,7 @@ class Vehicle : public Circle {
         double speed;
         double boost;
         double angular_speed;
+        int ctrl;
         Vector2d target;
         Environment active_region;
         Histogram obstacle_density;

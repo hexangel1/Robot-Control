@@ -19,9 +19,9 @@ void Histogram::Build(const Environment& region)
         for (int k = 0; k < size; k++) {
                 double sum = 0.0;
                 ph[k] = 0.0;
-                for (int i = -2; i <= 2; i++) {
+                for (int i = -1; i <= 1; i++) {
                         int r = size;
-                        double weight = 2 + 1 - abs(i);
+                        double weight = 1 + 1 - abs(i);
                         ph[k] += weight * h[(r + k - i) % r];
                         sum += weight;
                 }
