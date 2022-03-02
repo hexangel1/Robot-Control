@@ -2,10 +2,14 @@
 #define MANAGER_HPP_SENTRY
 
 #include "vehicle.hpp"
+#include "master.hpp"
+#include "slave.hpp"
 #include "graphobject.hpp"
+#include "targetset.hpp"
 
 class Manager {
         Environment map;
+        TargetSet set;
         GraphObjectItem *objects;
         Vehicle **robots;
         int allocated;
@@ -16,11 +20,13 @@ public:
         ~Manager();
         void Init();
         void Update();
-        void Show(bool info);
+        void Show(bool info, bool drop);
 private:
         void MapInit();
+        void SetTargets();
         void AddObject(GraphObject *ptr);
-        void AddRobot(Vehicle *ptr);
+        void AddMaster(Master *p);
+        void AddVehicle(Vehicle *ptr);
         void Display() const;
 };
 

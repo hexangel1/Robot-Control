@@ -5,8 +5,8 @@ OBJECTS = $(SOURCES:.cpp=.o)
 CXX = g++
 CXXFLAGS = -Wall -Wextra -g -O2 -std=c++98 -D DEBUG=1 # -D TEST_VERSION=1
 LDLIBS = -lglfw -lGL -lGLEW -lX11 -lXrandr -pthread -lm
-CTAGS = ctags
-INSTALL = install
+CTAGS = /usr/bin/ctags
+INSTALL = /usr/bin/install
 PREFIX = /usr/local
 
 $(PROJECT): $(OBJECTS)
@@ -25,7 +25,7 @@ run: $(PROJECT)
 	./$(PROJECT)
 
 memcheck:
-	valgrind -s --track-origins=yes --leak-check=full ./$(PROJECT)
+	valgrind -s --leak-check=full ./$(PROJECT)
 
 tar:
 	tar -cf $(PROJECT).tar $(SOURCES) $(HEADERS) Makefile README.txt

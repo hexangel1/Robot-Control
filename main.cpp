@@ -16,7 +16,7 @@ struct InputState {
 };
 
 static InputState Input;
-static const char *const title = "Robot Control Simulator";
+static const char *const title = "Robot Group Control Simulator";
 static const int window_width = 1920;
 static const int window_height = 1000;
 
@@ -46,7 +46,7 @@ static void key_pressed(GLFWwindow *window, int key, int code,
         (void)mode;
 }
 
-static void mouse_moved(GLFWwindow *window, double xpos, double ypos)
+static void cursor_moved(GLFWwindow *window, double xpos, double ypos)
 {
         Input.last_x = xpos;
         Input.last_y = ypos;
@@ -88,7 +88,7 @@ static GLFWwindow *init_gl_context(void)
         }
         glfwMakeContextCurrent(window);
         glfwSetKeyCallback(window, key_pressed);
-        glfwSetCursorPosCallback(window, mouse_moved);
+        glfwSetCursorPosCallback(window, cursor_moved);
         glfwSetMouseButtonCallback(window, mouse_clicked);
         glewExperimental = GL_TRUE;
         if (glewInit() != GLEW_OK) {
@@ -126,11 +126,15 @@ static void init_input(void)
         Input.last_y = 0.0;
 };
 
-static void process_input(bool& paused, bool& info, int& speed)
+static void process_input(bool& paused, bool& info, bool& drop, int& speed)
 {
         if (Input.keys['Q'] && !Input.lock['Q']) {
                 Input.lock['Q'] = true;
                 paused = !paused;
+        }
+        if (Input.keys['Y'] && !Input.lock['Y']) {
+                Input.lock['Y'] = true;
+                drop = true;
         }
         if (Input.keys['E'] && !Input.lock['E']) {
                 Input.lock['E'] = true;
@@ -153,18 +157,20 @@ static void main_loop(GLFWwindow *window)
         Manager Model(window_width, window_height);
         bool paused = true;
         bool info = false;
+        bool drop = false;
         int speed = 1;
         Model.Init();
         for (;;) {
                 glfwPollEvents();
                 if (glfwWindowShouldClose(window))
                         break;
-                process_input(paused, info, speed);
+                process_input(paused, info, drop, speed);
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 for (int i = 0; !paused && i < speed; i++)
                         Model.Update();
-                Model.Show(info);
+                Model.Show(info, drop);
+                drop = false;
                 glFlush();
                 assert(glGetError() == GL_NO_ERROR);
                 glfwSwapBuffers(window);

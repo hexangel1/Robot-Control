@@ -5,6 +5,8 @@ class Environment {
         int width;
         int height;
         double *map;
+        double offsx;
+        double offsy;
 public:
         Environment(int w, int h);
         ~Environment();

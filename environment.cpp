@@ -6,7 +6,7 @@
         #include <GLFW/glfw3.h>
 #endif
 
-const int Environment::cell_size = 5;
+const int Environment::cell_size = 4;
 
 Environment::Environment(int w, int h)
 {
@@ -26,6 +26,8 @@ void Environment::CopyRegion(const Environment& map, double offx, double offy)
 {
         int offsetx = (int)offx / cell_size - width / 2;
         int offsety = (int)offy / cell_size - height / 2;
+        offsx = offx;
+        offsy = offy;
         for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
                         double v = map.Get(offsety + i, offsetx + j);
@@ -36,11 +38,23 @@ void Environment::CopyRegion(const Environment& map, double offx, double offy)
 
 double Environment::Angle(int i, int j) const
 {
+/*        if (i == height / 2 && j == width / 2)
+                return 0; 
+        return sin((i - height / 2) / Distance(i, j)) >= 0 ? 
+               acos((j - width / 2) / Distance(i, j)) :
+               2*PI - acos((j - width / 2) / Distance(i, j));
+*/
+        double u = offsy - ((height / 2) * cell_size) + i * cell_size;
+        double v = offsx - ((width / 2) * cell_size) + j * cell_size;
+        return ANGLE_2PI(atan2(u - offsy, v -offsx));
         return ANGLE_2PI(atan2(i - height / 2, j - width / 2));
 }
 
 double Environment::Distance(int i, int j) const
 {
+        double u = offsy - ((height / 2) * cell_size) + i * cell_size;
+        double v = offsx - ((width / 2) * cell_size) + j * cell_size;
+        return sqrt(pow(u - offsy, 2) + pow(v - offsx, 2));
         return sqrt(pow(i - height / 2, 2) + pow(j - width / 2, 2));
 }
 

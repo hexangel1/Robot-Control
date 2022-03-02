@@ -50,31 +50,59 @@ void Manager::Init()
         glNewList(box, GL_COMPILE);
         Display();
 #ifndef TEST_VERSION
-        AddRobot(new Vehicle(Vector2d(1100, 900), yellow, Vector2d(900, 100)));
-        AddRobot(new Vehicle(Vector2d(1800, 780), magenta, Vector2d(100, 300)));
-        AddRobot(new Vehicle(Vector2d(300, 200), blue, Vector2d(600, 920)));
-        AddRobot(new Vehicle(Vector2d(1800, 150), cyan, Vector2d(100, 850)));
-        AddRobot(new Vehicle(Vector2d(500, 250), orange, Vector2d(900, 900)));
-        AddRobot(new Vehicle(Vector2d(300, 900), white, Vector2d(1800, 300)));
-        AddRobot(new Vehicle(Vector2d(20, 650), rose, Vector2d(1800, 920)));
-        AddRobot(new Vehicle(Vector2d(200, 450), khaki, Vector2d(1800, 500)));
-        AddRobot(new Vehicle(Vector2d(330, 100), indigo, Vector2d(1400, 900)));
-        AddRobot(new Vehicle(Vector2d(1200, 700), dgreen, Vector2d(400, 100)));
+        AddMaster(new Master(Vector2d(1100, 900), yellow));
+        AddMaster(new Master(Vector2d(1800, 780), magenta));
+        AddMaster(new Master(Vector2d(300, 200), blue));
+        AddMaster(new Master(Vector2d(1800, 150), cyan));
+        AddMaster(new Master(Vector2d(500, 250), orange));
+        AddMaster(new Master(Vector2d(300, 900), white));
+        AddMaster(new Master(Vector2d(20, 650), rose));
+        AddMaster(new Master(Vector2d(200, 450), khaki));
+        AddMaster(new Master(Vector2d(330, 100), indigo));
+        AddMaster(new Master(Vector2d(1200, 700), dgreen));
 #else
-        AddRobot(new Vehicle(Vector2d(1000, 100), yellow, Vector2d(1000, 900)));
+        Slave *tmp = new Slave(Vector2d(995.5, 100), yellow, 0);
+        Master *tmp2 = new Master(Vector2d(800, 101), green);
+        tmp->Bind(tmp2);
+        AddRobot(tmp);
+        AddRobot(tmp2);
 #endif
+        SetTargets();
         glEndList();
         MapInit();
+}
+
+void Manager::SetTargets()
+{
+        set.Add(Vector2d(900, 100), yellow);
+        set.Add(Vector2d(100, 300), magenta);
+        set.Add(Vector2d(600, 920), blue);
+        set.Add(Vector2d(100, 850), cyan);
+        set.Add(Vector2d(900, 900), orange);
+        set.Add(Vector2d(1800, 300), white);
+        set.Add(Vector2d(1800, 920), rose);
+        set.Add(Vector2d(1800, 500), khaki);
+        set.Add(Vector2d(1400, 900), indigo);
+        set.Add(Vector2d(400, 100), dgreen);
+        set.Show();
 }
 
 void Manager::Update()
 {
         for (int i = 0; i < amount; i++)
-                robots[i]->Update(robots, map);
+                robots[i]->Update(map, set);
 }
 
-void Manager::Show(bool info)
+void Manager::Show(bool info, bool drop)
 {
+        if (drop) {
+                for (int i = 0; i < amount; i++) {
+                        if (robots[i]->Colour() != yellow)
+                                continue;
+                        robots[i]->WriteHistogram();
+//                        robots[i]->WriteState();
+                }
+        }
         glCallList(box);
         for (int i = 0; i < amount; i++)
                 robots[i]->Show();
@@ -99,13 +127,17 @@ void Manager::AddObject(GraphObject *ptr)
         objects = tmp;
 }
 
-void Manager::AddRobot(Vehicle *ptr)
+void Manager::AddMaster(Master *p)
 {
-        GraphObject *q;
-        q = new Circle(ptr->GetTarget(), ptr->Colour(), 15.0);
-        q->Show();
+//        Slave *q = new Slave(p->GetXY() + Vector2d(0.0, -30.0), p->Colour(), 0);
+  //      q->Bind(p);
+        AddVehicle(p);
+    //    AddVehicle(q);
+}
+
+void Manager::AddVehicle(Vehicle *ptr)
+{
         AddObject(ptr);
-        AddObject(q);
         if (amount == allocated) {
                 allocated <<= 1;
                 Vehicle **tmp = new Vehicle*[allocated];
