@@ -22,7 +22,6 @@ public:
         void Update();
         void Show(bool info, bool drop);
 private:
-        void MapInit();
         void SetTargets();
         void AddObject(GraphObject *ptr);
         void AddMaster(Master *p);

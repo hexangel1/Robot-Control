@@ -19,6 +19,7 @@ class Vehicle : public Circle {
         bool accident;
         static const int window_size;
         static const int histogram_size;
+        static const int max_valley_size;
         static const double vehicle_radius;
         static const double speed_constant;
         static const double max_speed;
@@ -47,6 +48,7 @@ private:
         bool CheckMove(const Environment& map) const;
         void ShowFreeValleys() const;
         void ShowActiveWindow() const;
+        void Mapping(Environment& map, bool val) const;
 };
 
 #endif /* VEHICLE_HPP_SENTRY */

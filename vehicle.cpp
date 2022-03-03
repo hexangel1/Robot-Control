@@ -1,10 +1,11 @@
-#include <cmath>
 #include <cstdio>
+#include <cmath>
 #include <GLFW/glfw3.h>
 #include "vehicle.hpp"
 
 const int Vehicle::window_size = 41;
 const int Vehicle::histogram_size = 72;
+const int Vehicle::max_valley_size = 24;
 const double Vehicle::vehicle_radius = 8.0;
 const double Vehicle::speed_constant = 0.015;
 const double Vehicle::max_speed = 50.0;
@@ -109,20 +110,21 @@ int Vehicle::SteerControl() const
         }
         if (!best)
                 return -1;
-        if (best->end - best->begin <= 24)
+        if (best->end - best->begin <= max_valley_size)
                 return (best->end + best->begin) / 2 % histogram_size;
-        if (Score(best->begin) >= Score(best->end))
-                return (best->begin + 24 + best->begin) / 2 % histogram_size;
-        return (best->end - 24 + best->end) / 2 % histogram_size;
+        if (Score(best->begin) < Score(best->end))
+                return (2 * best->end - max_valley_size) / 2 % histogram_size;
+        return (2 * best->begin + max_valley_size) / 2 % histogram_size;
 }
 
 double Vehicle::SpeedControl(int k) const
 {
         double max = 0.0;
-        for (int i = -3; i <= 3; i++) {
+        for (int i = -4; i <= 4; i++) {
                 if (obstacle_density[k + i] >= max)
-                        max = obstacle_density[k + i];
+                        max += obstacle_density[k + i];
         }
+        max /= 5;
         double h = fmin(max, max_obstacle_density);
         return max_speed * (1.0 - h / max_obstacle_density);
 }
@@ -191,5 +193,20 @@ void Vehicle::ShowFreeValleys() const
                 }
         }
         glEnd();
+}
+
+void Vehicle::Mapping(Environment& map, bool s) const
+{
+        double x, y;
+        int size = Environment::cell_size;
+        for (x = -Radius(); x < Radius(); x++) {
+                for (y = -Radius(); y < Radius(); y++) {
+                        if (IsInside(coord + Vector2d(x, y))) {
+                                int j = (int)(coord.X() + x) / size;
+                                int i = (int)(coord.Y() + y) / size;
+                                map.Set(i, j, s ? 1.0 : 0.0);
+                        }
+                }
+        }
 }
 

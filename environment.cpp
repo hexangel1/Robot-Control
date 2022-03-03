@@ -1,5 +1,6 @@
 #include <cmath>
 #include "vector2d.hpp"
+#include "graphobject.hpp"
 #include "environment.hpp"
 
 #if DEBUG == 1
@@ -17,10 +18,31 @@ Environment::Environment(int w, int h)
                 map[i] = 0.0;
 }
 
+void Environment::Init(GraphObjectItem *ptr)
+{
+        for (int i = 0; i < height; i++) {
+                for (int j = 0; j < width; j++)
+                        map[i * width + j] = 
+                        GetValue(j * cell_size + cell_size / 2,
+                                 i * cell_size + cell_size / 2, ptr);
+        }
+}
+
 Environment::~Environment()
 {
         delete[] map;
 }
+
+double Environment::GetValue(double x, double y, GraphObjectItem *ptr)
+{
+        while (ptr) {
+                if (ptr->elem->IsInside(Vector2d(x, y)))
+                        return 1.0;
+                ptr = ptr->next;
+        }
+        return 0.0;
+}
+
 
 void Environment::CopyRegion(const Environment& map, double offx, double offy)
 {

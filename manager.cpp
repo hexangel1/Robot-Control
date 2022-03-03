@@ -25,7 +25,6 @@ Manager::~Manager()
 
 void Manager::Init()
 {
-#ifndef TEST_VERSION
         for (int i = 200; i < 1700; i += 400)
                 AddObject(new Rectangle(Vector2d(i, 620), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
@@ -36,20 +35,10 @@ void Manager::Init()
                 AddObject(new Ellipse(Vector2d(i, 300), red, 50, 100));
         for (int i = 400; i < 1700; i += 400)
                 AddObject(new Triangle(Vector2d(i, 550), red, 70));
-#else
-        double x = 1000, y = 700;
-        AddObject(new Triangle(Vector2d(x-200, y),
-                               Vector2d(x, y),
-                               Vector2d(x-200, y-100), 
-                               red));
-        AddObject(new Triangle(Vector2d(x+200, y),
-                               Vector2d(x, y),
-                               Vector2d(x+200, y-100), 
-                               red));
-#endif
         glNewList(box, GL_COMPILE);
         Display();
-#ifndef TEST_VERSION
+        SetTargets();
+        glEndList();
         AddMaster(new Master(Vector2d(1100, 900), yellow));
         AddMaster(new Master(Vector2d(1800, 780), magenta));
         AddMaster(new Master(Vector2d(300, 200), blue));
@@ -60,16 +49,7 @@ void Manager::Init()
         AddMaster(new Master(Vector2d(200, 450), khaki));
         AddMaster(new Master(Vector2d(330, 100), indigo));
         AddMaster(new Master(Vector2d(1200, 700), dgreen));
-#else
-        Slave *tmp = new Slave(Vector2d(995.5, 100), yellow, 0);
-        Master *tmp2 = new Master(Vector2d(800, 101), green);
-        tmp->Bind(tmp2);
-        AddRobot(tmp);
-        AddRobot(tmp2);
-#endif
-        SetTargets();
-        glEndList();
-        MapInit();
+        map.Init(objects);
 }
 
 void Manager::SetTargets()
@@ -112,13 +92,6 @@ void Manager::Show(bool info, bool drop)
         }
 }
 
-void Manager::MapInit()
-{
-        GraphObjectItem *tmp;
-        for (tmp = objects; tmp; tmp = tmp->next)
-                tmp->elem->Mapping(map, true);
-}
-
 void Manager::AddObject(GraphObject *ptr)
 {
         GraphObjectItem *tmp = new GraphObjectItem;
@@ -129,10 +102,10 @@ void Manager::AddObject(GraphObject *ptr)
 
 void Manager::AddMaster(Master *p)
 {
-//        Slave *q = new Slave(p->GetXY() + Vector2d(0.0, -30.0), p->Colour(), 0);
-  //      q->Bind(p);
+  //      Slave *q = new Slave(p->GetXY() + Vector2d(0.0, -30.0), p->Colour(), 0);
+    //    q->Bind(p);
         AddVehicle(p);
-    //    AddVehicle(q);
+      //  AddVehicle(q);
 }
 
 void Manager::AddVehicle(Vehicle *ptr)
