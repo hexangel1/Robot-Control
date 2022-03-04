@@ -39,12 +39,14 @@ void Manager::Init()
         Display();
         SetTargets();
         glEndList();
+        Vehicle::ReadConfig("config.txt");
         AddMaster(new Master(Vector2d(1100, 900), yellow));
         AddMaster(new Master(Vector2d(1800, 780), magenta));
         AddMaster(new Master(Vector2d(300, 200), blue));
-/*        AddMaster(new Master(Vector2d(1800, 150), cyan));
+        AddMaster(new Master(Vector2d(1800, 150), cyan));
         AddMaster(new Master(Vector2d(500, 250), orange));
-        AddMaster(new Master(Vector2d(300, 900), white));
+/*
+AddMaster(new Master(Vector2d(300, 900), white));
         AddMaster(new Master(Vector2d(20, 650), rose));
         AddMaster(new Master(Vector2d(200, 450), khaki));
         AddMaster(new Master(Vector2d(330, 100), indigo));
@@ -71,6 +73,7 @@ void Manager::Update()
 {
         for (int i = 0; i < amount; i++)
                 robots[i]->Update(map, set);
+        CheckCollision();
 }
 
 void Manager::Show(bool info, bool drop)
@@ -79,7 +82,7 @@ void Manager::Show(bool info, bool drop)
                 for (int i = 0; i < amount; i++) {
                         if (robots[i]->Colour() != yellow)
                                 continue;
-                        robots[i]->WriteHistogram();
+                        robots[i]->WriteLog();
                 }
         }
         glCallList(box);
@@ -130,5 +133,36 @@ void Manager::Display() const
         GraphObjectItem *tmp;
         for (tmp = objects; tmp; tmp = tmp->next)
                 tmp->elem->Show();
+}
+
+void Manager::CheckCollision() const
+{
+        for (int i = 0; i < amount - 1; i++) {
+                for (int j = i + 1; j < amount; j++) {
+                        Vector2d v = robots[i]->GetXY() - robots[j]->GetXY();
+                        double s = robots[i]->Radius() + robots[j]->Radius();
+                        double distance = v.Module() - s;
+                        if (distance <= 0.01) {
+                                robots[i]->Stop();
+                                robots[j]->Stop();
+                        }
+                }
+        }
+#ifdef CHECK_OBSTACLES
+        for (int i = 0; i < amount; i++) {
+                Vector2d coord = robots[i]->GetXY();
+                for (GraphObjectItem *tmp = objects; tmp; tmp = tmp->next) {
+                        Vector2d dir(robots[i]->Radius(), 0.0);
+                        for (int k = 0; k < 8; k++) {
+                                if (tmp->elem->IsInside(coord + dir)) {
+                                        robots[i]->Stop();
+                                        goto next_robot;
+                                }
+                                dir.Rotate(DEG2RAD(45));
+                        }
+                }
+next_robot: ;
+        }
+#endif
 }
 

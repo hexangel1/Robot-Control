@@ -23,6 +23,7 @@ public:
         void Show(bool info, bool drop);
 private:
         void SetTargets();
+        void CheckCollision() const;
         void AddObject(GraphObject *ptr);
         void AddMaster(Master *p);
         void AddVehicle(Vehicle *ptr);

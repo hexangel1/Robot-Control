@@ -1,17 +1,20 @@
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctype.h>
 #include <cmath>
 #include <GLFW/glfw3.h>
 #include "vehicle.hpp"
 
-const int Vehicle::window_size = 41;
-const int Vehicle::histogram_size = 72;
-const int Vehicle::max_valley_size = 24;
-const double Vehicle::vehicle_radius = 8.0;
-const double Vehicle::speed_constant = 0.015;
-const double Vehicle::max_speed = 50.0;
-const double Vehicle::max_boost = 0.85;
-const double Vehicle::max_angle_speed = 0.02;
-const double Vehicle::max_obstacle_density = 40.0;
+int Vehicle::window_size = 41;
+int Vehicle::histogram_size = 72;
+int Vehicle::max_valley_size = 24;
+double Vehicle::vehicle_radius = 8.0;
+double Vehicle::speed_constant = 0.015;
+double Vehicle::max_speed = 50.0;
+double Vehicle::max_boost = 0.85;
+double Vehicle::max_angle_speed = 0.02;
+double Vehicle::max_obstacle_density = 40.0;
 
 Vehicle::Vehicle(const Vector2d& coord, int colour)
         : Circle(coord, colour, vehicle_radius),
@@ -36,7 +39,7 @@ void Vehicle::Update(Environment& map, const TargetSet& set)
                 delete tmp;
         }
         ChangeTargets(set);
-        Mapping(map, false);
+        Mapping(map, false); 
         coord += speed_constant * speed * Vector2d(cos(angle), sin(angle));
         speed += boost;
         angle += angular_speed;
@@ -47,19 +50,15 @@ void Vehicle::Update(Environment& map, const TargetSet& set)
         obstacle_density.Smooth();
         vall = obstacle_density.GetValleys(0.01);
         Control();
-        if (!CheckMove(map))
-                stopped = true;
-        Mapping(map, true);
+        Mapping(map, true); 
 }
 
-
-void Vehicle::WriteState() const
+void Vehicle::WriteLog() const
 {
-        fprintf(stderr, "x = %lf\n", coord.X());
-        fprintf(stderr, "y = %lf\n", coord.Y());
+        fprintf(stderr, "x     = %lf\n", coord.X());
+        fprintf(stderr, "y     = %lf\n", coord.Y());
         fprintf(stderr, "angle = %lf\n", angle);
         fprintf(stderr, "speed = %lf\n", speed);
-        fprintf(stderr, "%lf\n", obstacle_density[GetSector(angle)]);
 }
      
 void Vehicle::Control()
@@ -144,19 +143,6 @@ Vector2d Vehicle::Direction(int k) const
         return dir;
 }
 
-bool Vehicle::CheckMove(const Environment& map) const
-{
-        Vector2d ray(Radius(), 0.0);
-        for (int k = 0; k < 8; k++) {
-                int j = (int)(coord + ray).X() / Environment::cell_size;
-                int i = (int)(coord + ray).Y() / Environment::cell_size;
-                if (map.Get(i, j) > 0.0)
-                        return false;
-                ray.Rotate(DEG2RAD(45.0));
-        }
-        return true;
-}
-
 void Vehicle::ShowDirection() const
 {
         Vector2d a = coord + 23.0 * Vector2d(cos(angle), sin(angle));
@@ -215,5 +201,51 @@ void Vehicle::Mapping(Environment& map, bool s) const
                         }
                 }
         }
+}
+
+bool Vehicle::ReadConfig(const char *file)
+{
+        char buf[128], var[32], val[32];
+        FILE *fp = fopen(file, "r");
+        if (!fp) {
+                perror(file);
+                fprintf(stderr, "reading config file %s failed\n", file);
+                return false;
+        }
+        while (fgets(buf, sizeof(buf), fp)) {
+                int res = sscanf(buf, "%31s %*[=] %31s", var, val);
+                if (res != 2) {
+                        fprintf(stderr, "config file parsing error\n");
+                        fclose(fp);
+                        return false;
+                }
+                SetValue(var, val);
+        }
+        fclose(fp);
+        return true;
+}
+
+void Vehicle::SetValue(const char *var, const char *value)
+{
+        if (!strcmp(var, "window_size"))
+                window_size = atoi(value);
+        else if (!strcmp(var, "histogram_size"))
+                histogram_size = atoi(value);
+        else if (!strcmp(var, "max_valley_size"))
+                max_valley_size = atoi(value);
+        else if (!strcmp(var, "vehicle_radius"))
+                vehicle_radius = atof(value);
+        else if (!strcmp(var, "speed_constant"))
+                speed_constant = atof(value);
+        else if (!strcmp(var, "max_speed"))
+                max_speed = atof(value);
+        else if (!strcmp(var, "max_boost"))
+                max_boost = atof(value);
+        else if (!strcmp(var, "max_angle_speed"))
+                max_angle_speed = atof(value);
+        else if (!strcmp(var, "max_obstacle_density"))
+                max_obstacle_density = atof(value);
+        else
+                fprintf(stderr, "variable %s not found\n", var);
 }
 
