@@ -1,7 +1,6 @@
 #ifndef GRAPHOBJECT_HPP_SENTRY
 #define GRAPHOBJECT_HPP_SENTRY
 
-#include "environment.hpp"
 #include "vector2d.hpp"
 
 #define RED(param)   (((param) & 0xFF0000) >> 0x10)

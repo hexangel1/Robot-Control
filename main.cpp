@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <cassert>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -42,8 +43,6 @@ static void key_pressed(GLFWwindow *window, int key, int code,
                         Input.keys[key] = false;
                 }
         }
-        (void)code;
-        (void)mode;
 }
 
 static void cursor_moved(GLFWwindow *window, double xpos, double ypos)
@@ -52,7 +51,6 @@ static void cursor_moved(GLFWwindow *window, double xpos, double ypos)
         Input.last_y = ypos;
         if (Input.first_mouse)
                 Input.first_mouse = false;
-        (void)window;
 }
 
 static void mouse_clicked(GLFWwindow *window, int button, int action, int mode)
@@ -65,7 +63,6 @@ static void mouse_clicked(GLFWwindow *window, int button, int action, int mode)
         } else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
-        (void)mode;
 }
 
 static GLFWwindow *init_gl_context(void)
@@ -185,6 +182,7 @@ int main()
                 return 1;
         setup_view();
         init_input();
+        srand(time(0));
         main_loop(window);
         glfwDestroyWindow(window);
         glfwTerminate();

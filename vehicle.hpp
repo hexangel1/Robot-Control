@@ -12,11 +12,11 @@ class Vehicle : public Circle {
         double speed;
         double boost;
         double angular_speed;
-        int ctrl;
+        bool stopped;
         Environment active_region;
         Histogram obstacle_density;
         Valley *vall;
-        bool accident;
+protected:
         static const int window_size;
         static const int histogram_size;
         static const int max_valley_size;
@@ -26,17 +26,18 @@ class Vehicle : public Circle {
         static const double max_boost;
         static const double max_angle_speed;
         static const double max_obstacle_density;
-        static const double safe_distance;
 public:
         Vehicle(const Vector2d& coord, int colour);
+        virtual ~Vehicle() {}
+        virtual Vector2d GetTarget() const = 0;
         double GetAngel(int k) const;
         int GetSector(double phi) const;
         void Update(Environment& map, const TargetSet& set);
-        void ShowInfo() const;
-        void WriteHistogram() const { obstacle_density.Output(); }
+        void ShowFreeValleys() const;
+        void ShowActiveWindow() const;
+        void ShowDirection() const;
         void WriteState() const;
-        virtual Vector2d GetTarget() const = 0;
-        inline bool AccidentHappened() const { return accident; }
+        void WriteHistogram() const { obstacle_density.Output(); }
 private:
         virtual void ChangeTargets(const TargetSet& set) = 0;
         void Control();
@@ -44,10 +45,7 @@ private:
         double SpeedControl(int k) const;
         double Score(int k) const;
         Vector2d Direction(int k) const;
-        bool IsTargetReached() const;
         bool CheckMove(const Environment& map) const;
-        void ShowFreeValleys() const;
-        void ShowActiveWindow() const;
         void Mapping(Environment& map, bool val) const;
 };
 

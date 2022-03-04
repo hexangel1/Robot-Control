@@ -42,13 +42,13 @@ void Manager::Init()
         AddMaster(new Master(Vector2d(1100, 900), yellow));
         AddMaster(new Master(Vector2d(1800, 780), magenta));
         AddMaster(new Master(Vector2d(300, 200), blue));
-        AddMaster(new Master(Vector2d(1800, 150), cyan));
+/*        AddMaster(new Master(Vector2d(1800, 150), cyan));
         AddMaster(new Master(Vector2d(500, 250), orange));
         AddMaster(new Master(Vector2d(300, 900), white));
         AddMaster(new Master(Vector2d(20, 650), rose));
         AddMaster(new Master(Vector2d(200, 450), khaki));
         AddMaster(new Master(Vector2d(330, 100), indigo));
-        AddMaster(new Master(Vector2d(1200, 700), dgreen));
+        AddMaster(new Master(Vector2d(1200, 700), dgreen)); */
         map.Init(objects);
 }
 
@@ -80,16 +80,19 @@ void Manager::Show(bool info, bool drop)
                         if (robots[i]->Colour() != yellow)
                                 continue;
                         robots[i]->WriteHistogram();
-//                        robots[i]->WriteState();
                 }
         }
         glCallList(box);
         for (int i = 0; i < amount; i++)
                 robots[i]->Show();
         if (info) {
-                for (int i = 0; i < amount; i++)
-                        robots[i]->ShowInfo();
+                for (int i = 0; i < amount; i++) {
+                        robots[i]->ShowActiveWindow();
+                        robots[i]->ShowFreeValleys();
+                }
         }
+        for (int i = 0; i < amount; i++)
+                robots[i]->ShowDirection();
 }
 
 void Manager::AddObject(GraphObject *ptr)
@@ -102,15 +105,14 @@ void Manager::AddObject(GraphObject *ptr)
 
 void Manager::AddMaster(Master *p)
 {
-  //      Slave *q = new Slave(p->GetXY() + Vector2d(0.0, -30.0), p->Colour(), 0);
-    //    q->Bind(p);
+        Slave *q = new Slave(p->GetXY() + Vector2d(0.0, -30.0), p->Colour(), 0);
+        q->Bind(p);
         AddVehicle(p);
-      //  AddVehicle(q);
+        AddVehicle(q);
 }
 
 void Manager::AddVehicle(Vehicle *ptr)
 {
-        AddObject(ptr);
         if (amount == allocated) {
                 allocated <<= 1;
                 Vehicle **tmp = new Vehicle*[allocated];

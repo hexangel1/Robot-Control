@@ -9,10 +9,9 @@ const int Vehicle::max_valley_size = 24;
 const double Vehicle::vehicle_radius = 8.0;
 const double Vehicle::speed_constant = 0.015;
 const double Vehicle::max_speed = 50.0;
-const double Vehicle::max_boost = 1.0;
+const double Vehicle::max_boost = 0.85;
 const double Vehicle::max_angle_speed = 0.02;
-const double Vehicle::max_obstacle_density = 80.0;
-const double Vehicle::safe_distance = 80.0;
+const double Vehicle::max_obstacle_density = 40.0;
 
 Vehicle::Vehicle(const Vector2d& coord, int colour)
         : Circle(coord, colour, vehicle_radius),
@@ -23,14 +22,13 @@ Vehicle::Vehicle(const Vector2d& coord, int colour)
         speed = 0.0;
         boost = 0.0;
         angular_speed = 0.0;
-        accident = false;
+        stopped = false;
         vall = 0;
-        ctrl = 0;
 }
 
 void Vehicle::Update(Environment& map, const TargetSet& set)
 {
-        if (accident)
+        if (stopped)
                 return;
         while (vall) {
                 Valley *tmp = vall;
@@ -50,7 +48,7 @@ void Vehicle::Update(Environment& map, const TargetSet& set)
         vall = obstacle_density.GetValleys(0.01);
         Control();
         if (!CheckMove(map))
-                accident = true;
+                stopped = true;
         Mapping(map, true);
 }
 
@@ -64,19 +62,12 @@ void Vehicle::WriteState() const
         fprintf(stderr, "%lf\n", obstacle_density[GetSector(angle)]);
 }
      
-void Vehicle::ShowInfo() const
-{
-        ShowActiveWindow();
-        ShowFreeValleys();
-}
-
 void Vehicle::Control()
 {
         int k = SteerControl();
         double s = SpeedControl(GetSector(angle));
-        boost = SAT(s - speed, -max_boost, max_boost);
         double phi1 = fabs(GetAngel(k) - angle);
-        double phi2 = 2*PI - phi1;
+        double phi2 = 2 * PI - phi1;
         bool use_phi1 = phi1 <= phi2;
         if (GetAngel(k) - angle >= 0)
                 phi2 *= -1;
@@ -84,7 +75,8 @@ void Vehicle::Control()
                 phi1 *= -1;
         angular_speed = use_phi1 ? phi1 : phi2;
         angular_speed = SAT(angular_speed, -max_angle_speed, max_angle_speed);
-        ctrl = k;
+        s = s * (1.0 - fabs(angular_speed) * 0.5 / max_angle_speed);
+        boost = SAT(s - speed, -max_boost, max_boost);
 }
 
 double Vehicle::GetAngel(int k) const
@@ -110,6 +102,13 @@ int Vehicle::SteerControl() const
         }
         if (!best)
                 return -1;
+        int k_targ = GetSector((GetTarget() - coord).Argument());
+        if (best->begin == 0 && best->end == histogram_size - 1)
+                return k_targ;
+        if (best->end - best->begin >= 2 * max_valley_size &&
+            k_targ >= best->begin + max_valley_size % histogram_size && 
+            k_targ <= best->end - max_valley_size % histogram_size)
+                return k_targ;
         if (best->end - best->begin <= max_valley_size)
                 return (best->end + best->begin) / 2 % histogram_size;
         if (Score(best->begin) < Score(best->end))
@@ -124,7 +123,7 @@ double Vehicle::SpeedControl(int k) const
                 if (obstacle_density[k + i] >= max)
                         max += obstacle_density[k + i];
         }
-        max /= 5;
+        max /= 9.0;
         double h = fmin(max, max_obstacle_density);
         return max_speed * (1.0 - h / max_obstacle_density);
 }
@@ -145,11 +144,6 @@ Vector2d Vehicle::Direction(int k) const
         return dir;
 }
 
-bool Vehicle::IsTargetReached() const
-{
-        return abs((GetTarget() - coord).Module() - safe_distance) <= Radius();
-}
-
 bool Vehicle::CheckMove(const Environment& map) const
 {
         Vector2d ray(Radius(), 0.0);
@@ -161,6 +155,21 @@ bool Vehicle::CheckMove(const Environment& map) const
                 ray.Rotate(DEG2RAD(45.0));
         }
         return true;
+}
+
+void Vehicle::ShowDirection() const
+{
+        Vector2d a = coord + 23.0 * Vector2d(cos(angle), sin(angle));
+        Vector2d b = coord + 13.0 * 
+                Vector2d(cos(angle + 0.5), sin(angle + 0.5));
+        Vector2d c = coord + 13.0 * 
+                Vector2d(cos(angle - 0.5), sin(angle - 0.5));
+        glBegin(GL_TRIANGLES);
+        glColor3ub(RED(red), GREEN(red), BLUE(red));
+        glVertex2f(a.X(), a.Y());
+        glVertex2f(b.X(), b.Y());
+        glVertex2f(c.X(), c.Y());
+        glEnd();
 }
 
 void Vehicle::ShowActiveWindow() const
@@ -179,15 +188,13 @@ void Vehicle::ShowActiveWindow() const
 
 void Vehicle::ShowFreeValleys() const
 {
-        int col;
         glBegin(GL_LINES);
         for (Valley *tmp = vall; tmp; tmp = tmp->next) {
-                col = tmp->begin <= ctrl && tmp->end >= ctrl ? green : yellow;
                 for (int k = tmp->begin; k <= tmp->end; k++) {
                         Vector2d dir = Direction(k);
                         Vector2d a = coord + dir * (Radius() + 8.0);
                         Vector2d b = coord + dir * Radius() * 10.0;
-                        glColor3ub(RED(col), GREEN(col), BLUE(col));
+                        glColor3ub(RED(green), GREEN(green), BLUE(green));
                         glVertex2f(a.X(), a.Y());
                         glVertex2f(b.X(), b.Y());
                 }

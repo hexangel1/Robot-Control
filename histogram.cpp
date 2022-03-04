@@ -62,7 +62,10 @@ Valley *Histogram::GetValleys(double threshold) const
                 if (length > 0) {
                         tmp = new Valley;
                         tmp->begin = start;
-                        tmp->end = k - 1;
+                        if (k == size - 1)
+                                tmp->end = k;
+                        else
+                                tmp->end = k - 1;
                         tmp->size = length;
                         tmp->next = ret;
                         ret = tmp;
