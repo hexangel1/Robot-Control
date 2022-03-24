@@ -8,13 +8,14 @@
 
 int Vehicle::window_size = 41;
 int Vehicle::histogram_size = 72;
-int Vehicle::max_valley_size = 24;
-double Vehicle::vehicle_radius = 8.0;
+int Vehicle::max_valley_size = 21;
+double Vehicle::vehicle_radius = 6.0;
 double Vehicle::speed_constant = 0.015;
-double Vehicle::max_speed = 50.0;
-double Vehicle::max_boost = 0.85;
-double Vehicle::max_angle_speed = 0.02;
-double Vehicle::max_obstacle_density = 40.0;
+double Vehicle::boost_resist = 0.75;
+double Vehicle::max_speed = 100.0;
+double Vehicle::max_boost = 140.0;
+double Vehicle::max_angle_speed = 1.5708;
+double Vehicle::max_obstacle_density = 20.0;
 
 Vehicle::Vehicle(const Vector2d& coord, int colour)
         : Circle(coord, colour, vehicle_radius),
@@ -33,32 +34,28 @@ void Vehicle::Update(Environment& map, const TargetSet& set)
 {
         if (stopped)
                 return;
-        while (vall) {
-                Valley *tmp = vall;
-                vall = vall->next;
-                delete tmp;
-        }
+        FreeValleys();
         ChangeTargets(set);
-        Mapping(map, false); 
+        Mapping(map, false);
         coord += speed_constant * speed * Vector2d(cos(angle), sin(angle));
+        angle += speed_constant * angular_speed;
         speed += boost;
-        angle += angular_speed;
         angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
         speed = SAT(speed, 0.0, max_speed);
         active_region.CopyRegion(map, coord.X(), coord.Y());
         obstacle_density.Build(active_region);
         obstacle_density.Smooth();
-        vall = obstacle_density.GetValleys(0.01);
+        vall = obstacle_density.GetValleys(5.0);
         Control();
         Mapping(map, true); 
 }
 
 void Vehicle::WriteLog() const
 {
-        fprintf(stderr, "x     = %lf\n", coord.X());
-        fprintf(stderr, "y     = %lf\n", coord.Y());
-        fprintf(stderr, "angle = %lf\n", angle);
-        fprintf(stderr, "speed = %lf\n", speed);
+        fprintf(stderr, "x     = %f\n", coord.X());
+        fprintf(stderr, "y     = %f\n", coord.Y());
+        fprintf(stderr, "angle = %f\n", angle);
+        fprintf(stderr, "speed = %f\n", speed);
 }
      
 void Vehicle::Control()
@@ -74,10 +71,20 @@ void Vehicle::Control()
                 phi1 *= -1;
         angular_speed = use_phi1 ? phi1 : phi2;
         angular_speed = SAT(angular_speed, -max_angle_speed, max_angle_speed);
-        s = s * (1.0 - fabs(angular_speed) * 0.5 / max_angle_speed);
+        double r = boost_resist * fabs(angular_speed) / max_angle_speed;
+        s = fmin(s, (1.0 - r) * max_speed);
         boost = SAT(s - speed, -max_boost, max_boost);
 }
 
+void Vehicle::FreeValleys()
+{
+        while (vall) {
+                Valley *tmp = vall;
+                vall = vall->next;
+                delete tmp;
+        }
+}
+ 
 double Vehicle::GetAngel(int k) const
 {
         return 2 * PI * k / (double)histogram_size;
@@ -104,9 +111,9 @@ int Vehicle::SteerControl() const
         int k_targ = GetSector((GetTarget() - coord).Argument());
         if (best->begin == 0 && best->end == histogram_size - 1)
                 return k_targ;
-        if (best->end - best->begin >= 2 * max_valley_size &&
-            k_targ >= best->begin + max_valley_size % histogram_size && 
-            k_targ <= best->end - max_valley_size % histogram_size)
+        if (best->end - best->begin >= 1.5 * (double)max_valley_size &&
+            k_targ >= (best->begin + max_valley_size) % histogram_size && 
+            k_targ <= (best->end - max_valley_size) % histogram_size)
                 return k_targ;
         if (best->end - best->begin <= max_valley_size)
                 return (best->end + best->begin) / 2 % histogram_size;
@@ -118,11 +125,10 @@ int Vehicle::SteerControl() const
 double Vehicle::SpeedControl(int k) const
 {
         double max = 0.0;
-        for (int i = -4; i <= 4; i++) {
+        for (int i = -2; i <= 2; i++) {
                 if (obstacle_density[k + i] >= max)
-                        max += obstacle_density[k + i];
+                        max = obstacle_density[k + i];
         }
-        max /= 9.0;
         double h = fmin(max, max_obstacle_density);
         return max_speed * (1.0 - h / max_obstacle_density);
 }
@@ -161,7 +167,6 @@ void Vehicle::ShowDirection() const
 void Vehicle::ShowActiveWindow() const
 {
         double offset = window_size / 2 * Environment::cell_size;
-        glDisable(GL_MULTISAMPLE);
         glBegin(GL_LINE_LOOP);
         glColor3ub(0, 255, 0);
         glVertex2f(coord.X() - offset, coord.Y() - offset);
@@ -169,11 +174,11 @@ void Vehicle::ShowActiveWindow() const
         glVertex2f(coord.X() + offset, coord.Y() + offset);
         glVertex2f(coord.X() + offset, coord.Y() - offset);
         glEnd();
-        glEnable(GL_MULTISAMPLE);
 }
 
 void Vehicle::ShowFreeValleys() const
 {
+        glLineWidth(1.6);
         glBegin(GL_LINES);
         for (Valley *tmp = vall; tmp; tmp = tmp->next) {
                 for (int k = tmp->begin; k <= tmp->end; k++) {
@@ -238,6 +243,8 @@ void Vehicle::SetValue(const char *var, const char *value)
         else if (!strcmp(var, "speed_constant"))
                 speed_constant = atof(value);
         else if (!strcmp(var, "max_speed"))
+                max_speed = atof(value);
+        else if (!strcmp(var, "boost_resist"))
                 max_speed = atof(value);
         else if (!strcmp(var, "max_boost"))
                 max_boost = atof(value);

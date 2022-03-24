@@ -3,7 +3,7 @@ SOURCES = $(wildcard *.cpp)
 HEADERS = $(filter-out main.hpp, $(SOURCES:.cpp=.hpp))
 OBJECTS = $(SOURCES:.cpp=.o)
 CXX = g++
-CXXFLAGS = -Wall -g -O2 -std=c++98 -D DEBUG=1
+CXXFLAGS = -Wall -g -O2 -std=c++98 -pedantic
 LDLIBS = -lglfw -lGL -lGLEW -lX11 -lXau -ldl -pthread -lm
 CTAGS = /usr/bin/ctags
 INSTALL = /usr/bin/install
@@ -24,11 +24,11 @@ tags: $(SOURCES) $(HEADERS)
 run: $(PROJECT)
 	./$(PROJECT)
 
-memcheck:
+memcheck: $(PROJECT)
 	valgrind -s --leak-check=full ./$(PROJECT)
 
 tar:
-	tar -cf $(PROJECT).tar $(SOURCES) $(HEADERS) Makefile README.txt
+	tar -cf $(PROJECT).tar $(SOURCES) $(HEADERS) Makefile README.md
 
 clean:
 	rm -f $(PROJECT) *.o deps.mk tags

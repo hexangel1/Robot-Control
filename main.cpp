@@ -94,6 +94,7 @@ static GLFWwindow *init_gl_context(void)
                 return 0;
         }
         glEnable(GL_MULTISAMPLE);
+        glEnable(GL_LINE_SMOOTH);
         fprintf(stderr, "Vendor: %s\n", glGetString(GL_VENDOR));
         fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
         fprintf(stderr, "Version: %s\n", glGetString(GL_VERSION));
@@ -121,7 +122,7 @@ static void init_input(void)
         Input.first_mouse = true;
         Input.last_x = 0.0;
         Input.last_y = 0.0;
-};
+}
 
 static void process_input(bool& paused, bool& info, bool& drop, int& speed)
 {
@@ -182,7 +183,7 @@ int main()
                 return 1;
         setup_view();
         init_input();
-        srand(time(0));
+        srand(5);
         main_loop(window);
         glfwDestroyWindow(window);
         glfwTerminate();

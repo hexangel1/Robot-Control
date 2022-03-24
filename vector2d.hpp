@@ -3,7 +3,7 @@
 
 #include <cmath>
 #define PI 3.1415926535
-#define SAT(v, a, b) (v) >= (a) && (v) <= (b) ? (v) : ((v) > (b) ? (b) : (a));
+#define SAT(v, a, b) ((v) >= (a) && (v) <= (b) ? (v) : ((v) > (b) ? (b) : (a)))
 #define ANGLE_2PI(v) ((v) < 0.0 ? (v) + 2 * PI : (v))
 #define RAD2DEG(param) ((param) * 180.0 / PI)
 #define DEG2RAD(param) ((param) * PI / 180.0)

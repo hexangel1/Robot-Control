@@ -1,6 +1,16 @@
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctype.h>
 #include "manager.hpp"
 #include <GLFW/glfw3.h>
 
+const int Manager::colour_set[] = {
+        green, blue, yellow, magenta, cyan,
+        white, brown, khaki, indigo, orange,
+        rose, dred, dgreen, dblue
+};
+ 
 Manager::Manager(int width, int height)
         : map(width / Environment::cell_size, height / Environment::cell_size)
 {
@@ -20,7 +30,10 @@ Manager::~Manager()
                 delete tmp->elem;
                 delete tmp;
         }
+        for (int i = 0; i < amount; i++)
+                delete robots[i];
         delete[] robots;
+        glDeleteLists(box, 1);
 }
 
 void Manager::Init()
@@ -35,38 +48,62 @@ void Manager::Init()
                 AddObject(new Ellipse(Vector2d(i, 300), red, 50, 100));
         for (int i = 400; i < 1700; i += 400)
                 AddObject(new Triangle(Vector2d(i, 550), red, 70));
-        glNewList(box, GL_COMPILE);
-        Display();
-        SetTargets();
-        glEndList();
-        Vehicle::ReadConfig("config.txt");
-        AddMaster(new Master(Vector2d(1100, 900), yellow));
-        AddMaster(new Master(Vector2d(1800, 780), magenta));
-        AddMaster(new Master(Vector2d(300, 200), blue));
-        AddMaster(new Master(Vector2d(1800, 150), cyan));
-        AddMaster(new Master(Vector2d(500, 250), orange));
-/*
-AddMaster(new Master(Vector2d(300, 900), white));
-        AddMaster(new Master(Vector2d(20, 650), rose));
-        AddMaster(new Master(Vector2d(200, 450), khaki));
-        AddMaster(new Master(Vector2d(330, 100), indigo));
-        AddMaster(new Master(Vector2d(1200, 700), dgreen)); */
+        Vehicle::ReadConfig("scripts/script1/config.txt");
+        InitMap("scripts/script1/map.txt");
         map.Init(objects);
+        glNewList(box, GL_COMPILE);
+        GraphObjectItem *tmp;
+        for (tmp = objects; tmp; tmp = tmp->next)
+                tmp->elem->Show();
+        set.Show();
+        glEndList();
 }
 
-void Manager::SetTargets()
+void Manager::SetTarget(double x, double y)
 {
-        set.Add(Vector2d(900, 100), yellow);
-        set.Add(Vector2d(100, 300), magenta);
-        set.Add(Vector2d(600, 920), blue);
-        set.Add(Vector2d(100, 850), cyan);
-        set.Add(Vector2d(900, 900), orange);
-        set.Add(Vector2d(1800, 300), white);
-        set.Add(Vector2d(1800, 920), rose);
-        set.Add(Vector2d(1800, 500), khaki);
-        set.Add(Vector2d(1400, 900), indigo);
-        set.Add(Vector2d(400, 100), dgreen);
+        static int i = 0;
+        set.Add(Vector2d(x, y), colour_set[i]);
+        i++;
         set.Show();
+}
+
+bool Manager::IsComment(const char *str)
+{
+        int i;
+        for (i = 0; str[i] && isspace(str[i]); i++)
+                ;
+        return str[i] == '#';
+}
+
+void Manager::InitMap(const char *file)
+{
+        char buf[32], var[32], cmd[32];
+        int res;
+        double x, y;
+        FILE *fp;
+        fp = fopen(file, "r");
+        if (!fp) {
+                perror(file);
+                return;
+        }
+        while (fgets(buf, sizeof(buf), fp)) {
+                if (IsComment(buf))
+                        continue;
+                res = sscanf(buf, "%s %s %*[(] %lf %*[,] %lf %*[)]",
+                             cmd, var, &x, &y);
+                if (res != 4 || strcmp(cmd, "set")) {
+                        fprintf(stderr, "Parsing error\n");
+                        fclose(fp);
+                        return;
+                }
+                if (!strcmp(var, "robot"))
+                        SetRobot(x, y);
+                else if (!strcmp(var, "target"))
+                        SetTarget(x, y);
+                else
+                        fprintf(stderr, "unknown command: %s\n", var);
+        }
+        fclose(fp);
 }
 
 void Manager::Update()
@@ -106,12 +143,15 @@ void Manager::AddObject(GraphObject *ptr)
         objects = tmp;
 }
 
-void Manager::AddMaster(Master *p)
+void Manager::SetRobot(double x, double y)
 {
-        Slave *q = new Slave(p->GetXY() + Vector2d(0.0, -30.0), p->Colour(), 0);
-        q->Bind(p);
-        AddVehicle(p);
-        AddVehicle(q);
+        static int i = 0;
+        Master *m = new Master(Vector2d(x, y), red);
+        Slave *s = new Slave(Vector2d(x + 0.0, y - 30.0), colour_set[i], 0);
+        i++;
+        s->Bind(m);
+        AddVehicle(m);
+        AddVehicle(s);
 }
 
 void Manager::AddVehicle(Vehicle *ptr)
@@ -126,13 +166,6 @@ void Manager::AddVehicle(Vehicle *ptr)
         }
         robots[amount] = ptr;
         amount++;
-}
-
-void Manager::Display() const
-{
-        GraphObjectItem *tmp;
-        for (tmp = objects; tmp; tmp = tmp->next)
-                tmp->elem->Show();
 }
 
 void Manager::CheckCollision() const

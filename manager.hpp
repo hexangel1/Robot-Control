@@ -22,12 +22,14 @@ public:
         void Update();
         void Show(bool info, bool drop);
 private:
-        void SetTargets();
+        void InitMap(const char *file);
+        void SetRobot(double x, double y);
+        void SetTarget(double x, double y);
         void CheckCollision() const;
         void AddObject(GraphObject *ptr);
-        void AddMaster(Master *p);
         void AddVehicle(Vehicle *ptr);
-        void Display() const;
+        static bool IsComment(const char *str);
+        static const int colour_set[];
 };
 
 #endif /* MANAGER_HPP_SENTRY */

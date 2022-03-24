@@ -21,13 +21,14 @@ class Vehicle : public Circle {
         static int max_valley_size;
         static double vehicle_radius;
         static double speed_constant;
+        static double boost_resist;
         static double max_speed;
         static double max_boost;
         static double max_angle_speed;
         static double max_obstacle_density;
 public:
         Vehicle(const Vector2d& coord, int colour);
-        virtual ~Vehicle() {}
+        virtual ~Vehicle() { FreeValleys(); }
         void Update(Environment& map, const TargetSet& set);
         void Stop() { stopped = true; }
         void ShowDirection() const;
@@ -37,6 +38,7 @@ public:
         static bool ReadConfig(const char *file);
 private:
         void Control();
+        void FreeValleys();
         int SteerControl() const;
         double SpeedControl(int k) const;
         double GetAngel(int k) const;
@@ -45,7 +47,7 @@ private:
         double Score(int k) const;
         void Mapping(Environment& map, bool val) const;
         virtual void ChangeTargets(const TargetSet& set) = 0;
-        virtual Vector2d GetTarget() const = 0;  
+        virtual Vector2d GetTarget() const = 0;
         static void SetValue(const char *var, const char *value);
 };
 

@@ -47,7 +47,7 @@ void Histogram::Smooth()
 void Histogram::Output() const
 {
         for (int i = 0; i < size; i++)
-                fprintf(stdout, "%i %lf\n", 5*i, ph[i]);
+                printf("%i %f\n", 5*i, ph[i]);
 }
 
 Valley *Histogram::GetValleys(double threshold) const
