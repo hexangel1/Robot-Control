@@ -29,7 +29,6 @@ private:
         void AddObject(GraphObject *ptr);
         void AddVehicle(Vehicle *ptr);
         static bool IsComment(const char *str);
-        static const int colour_set[];
 };
 
 #endif /* MANAGER_HPP_SENTRY */

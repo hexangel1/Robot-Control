@@ -41,10 +41,62 @@ public:
         virtual ~GraphObject() {}
         virtual void Show() const = 0;
         virtual void Hide() const = 0;
-        virtual bool IsInside(const Vector2d& point) const = 0;
+        virtual bool IsInside(const Vector2d& v) const = 0;
         void Move(const Vector2d& move);
         inline Vector2d GetXY() const { return coord; }
         inline int Colour() const { return colour; }
+};
+
+class Polygon : public GraphObject {
+        VertexItem *ptr;
+public:
+        Polygon(const Vector2d& coord, int colour)
+                : GraphObject(coord, colour), ptr(0) {}
+        ~Polygon();
+        virtual void Show() const;
+        virtual void Hide() const;
+        virtual bool IsInside(const Vector2d& v) const;
+        void AddVertex(double dx, double dy);
+        void Rotate(double phi);
+};
+
+class Triangle : public Polygon {
+public:
+        Triangle(const Vector2d& coord, int colour, double a);
+        virtual ~Triangle() {}
+};
+
+class Rectangle : public Polygon {
+public:
+        Rectangle(const Vector2d& coord, int colour, double a, double b);
+        virtual ~Rectangle() {}
+};
+
+class Square : public Rectangle {
+public:
+        Square(const Vector2d& coord, int colour, double a)
+                : Rectangle(coord, colour, a, a) {}
+        virtual ~Square() {}
+};
+
+class RegularPolygon : public Polygon {
+public:
+        RegularPolygon(const Vector2d& coord, int colour, double r, int n);
+        virtual ~RegularPolygon() {}
+};
+
+class Pentagon : public RegularPolygon {
+public:
+        Pentagon(const Vector2d& coord, int colour, double r)
+                : RegularPolygon(coord, colour, r, 5) {}
+        virtual ~Pentagon() {}
+};
+
+class Hexagon : public RegularPolygon {
+public:
+        Hexagon(const Vector2d& coord, int colour, double r)
+                : RegularPolygon(coord, colour, r, 6) {}
+        virtual ~Hexagon() {}
 };
 
 class Ellipse : public GraphObject {
@@ -56,46 +108,9 @@ public:
         virtual ~Ellipse() {}
         virtual void Show() const;
         virtual void Hide() const;
-        virtual bool IsInside(const Vector2d& point) const;
+        virtual bool IsInside(const Vector2d& v) const;
         inline double MajorAxis() const { return major_axis; }
         inline double MinorAxis() const { return minor_axis; }
-};
-
-class Rectangle : public GraphObject {
-        double width;
-        double height;
-public:
-        Rectangle(const Vector2d& coord, int colour, double a, double b)
-                : GraphObject(coord, colour), width(a), height(b) {}
-        virtual ~Rectangle() {}
-        virtual void Show() const;
-        virtual void Hide() const;
-        virtual bool IsInside(const Vector2d& point) const;
-        inline double Width() const { return width; }
-        inline double Height() const { return height; }
-};
-
-class Triangle : public GraphObject {
-        Vector2d va;
-        Vector2d vb;
-        Vector2d vc;
-public:
-        Triangle(const Vector2d& coord, int colour, double a)
-                : GraphObject(coord, colour),
-                va(Vector2d(0.0, -a / 1.7320508)),
-                vb(Vector2d(+a / 2.0, a / 3.4641016)),
-                vc(Vector2d(-a / 2.0, a / 3.4641016)) {}
-        Triangle(const Vector2d& a, const Vector2d& b, const Vector2d& c,
-                 int colour)
-                : GraphObject((a + b + c) / 3, colour),
-                va(a - coord), vb(b - coord), vc(c - coord) {}
-        virtual ~Triangle() {}
-        virtual void Show() const;
-        virtual void Hide() const;
-        virtual bool IsInside(const Vector2d& point) const;
-        inline double LengthAB() const { return (va - vb).Module(); }
-        inline double LengthBC() const { return (vb - vc).Module(); }
-        inline double LengthAC() const { return (va - vc).Module(); }
 };
 
 class Circle : public Ellipse {
@@ -104,14 +119,6 @@ public:
                 : Ellipse(coord, colour, radius, radius) {}
         virtual ~Circle() {}
         inline double Radius() const { return MajorAxis(); }
-};
-
-class Square : public Rectangle {
-public:
-        Square(const Vector2d& coord, int colour, double size)
-                : Rectangle(coord, colour, size, size) {}
-        virtual ~Square() {}
-        inline double Size() const { return Width(); }
 };
 
 #endif /* GRAPHOBJECT_HPP_SENTRY */

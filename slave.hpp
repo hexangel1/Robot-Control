@@ -8,8 +8,8 @@ class Master;
 class Slave : public Vehicle {
         Master *target;
 public:
-        Slave(const Vector2d coord, int colour, Master *p)
-                : Vehicle(coord, colour), target(p) {}
+        Slave(const Vector2d coord, Master *p)
+                : Vehicle(coord, white), target(p) {}
         void Bind(Master *p) { target = p; }
         virtual ~Slave() {}
         virtual void ChangeTargets(const TargetSet& set) {}

@@ -183,7 +183,7 @@ int main()
                 return 1;
         setup_view();
         init_input();
-        srand(5);
+        srand(1);
         main_loop(window);
         glfwDestroyWindow(window);
         glfwTerminate();

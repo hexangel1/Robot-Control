@@ -47,7 +47,7 @@ void Vehicle::Update(Environment& map, const TargetSet& set)
         obstacle_density.Smooth();
         vall = obstacle_density.GetValleys(5.0);
         Control();
-        Mapping(map, true); 
+        Mapping(map, true);
 }
 
 void Vehicle::WriteLog() const
@@ -57,7 +57,7 @@ void Vehicle::WriteLog() const
         fprintf(stderr, "angle = %f\n", angle);
         fprintf(stderr, "speed = %f\n", speed);
 }
-     
+
 void Vehicle::Control()
 {
         int k = SteerControl();
@@ -84,7 +84,7 @@ void Vehicle::FreeValleys()
                 delete tmp;
         }
 }
- 
+
 double Vehicle::GetAngel(int k) const
 {
         return 2 * PI * k / (double)histogram_size;
@@ -112,7 +112,7 @@ int Vehicle::SteerControl() const
         if (best->begin == 0 && best->end == histogram_size - 1)
                 return k_targ;
         if (best->end - best->begin >= 1.5 * (double)max_valley_size &&
-            k_targ >= (best->begin + max_valley_size) % histogram_size && 
+            k_targ >= (best->begin + max_valley_size) % histogram_size &&
             k_targ <= (best->end - max_valley_size) % histogram_size)
                 return k_targ;
         if (best->end - best->begin <= max_valley_size)
@@ -152,15 +152,15 @@ Vector2d Vehicle::Direction(int k) const
 void Vehicle::ShowDirection() const
 {
         Vector2d a = coord + 23.0 * Vector2d(cos(angle), sin(angle));
-        Vector2d b = coord + 13.0 * 
+        Vector2d b = coord + 13.0 *
                 Vector2d(cos(angle + 0.5), sin(angle + 0.5));
-        Vector2d c = coord + 13.0 * 
+        Vector2d c = coord + 13.0 *
                 Vector2d(cos(angle - 0.5), sin(angle - 0.5));
         glBegin(GL_TRIANGLES);
         glColor3ub(RED(red), GREEN(red), BLUE(red));
-        glVertex2f(a.X(), a.Y());
-        glVertex2f(b.X(), b.Y());
-        glVertex2f(c.X(), c.Y());
+        glVertex2d(a.X(), a.Y());
+        glVertex2d(b.X(), b.Y());
+        glVertex2d(c.X(), c.Y());
         glEnd();
 }
 
@@ -169,10 +169,10 @@ void Vehicle::ShowActiveWindow() const
         double offset = window_size / 2 * Environment::cell_size;
         glBegin(GL_LINE_LOOP);
         glColor3ub(0, 255, 0);
-        glVertex2f(coord.X() - offset, coord.Y() - offset);
-        glVertex2f(coord.X() - offset, coord.Y() + offset);
-        glVertex2f(coord.X() + offset, coord.Y() + offset);
-        glVertex2f(coord.X() + offset, coord.Y() - offset);
+        glVertex2d(coord.X() - offset, coord.Y() - offset);
+        glVertex2d(coord.X() - offset, coord.Y() + offset);
+        glVertex2d(coord.X() + offset, coord.Y() + offset);
+        glVertex2d(coord.X() + offset, coord.Y() - offset);
         glEnd();
 }
 
@@ -186,8 +186,8 @@ void Vehicle::ShowFreeValleys() const
                         Vector2d a = coord + dir * (Radius() + 8.0);
                         Vector2d b = coord + dir * Radius() * 10.0;
                         glColor3ub(RED(green), GREEN(green), BLUE(green));
-                        glVertex2f(a.X(), a.Y());
-                        glVertex2f(b.X(), b.Y());
+                        glVertex2d(a.X(), a.Y());
+                        glVertex2d(b.X(), b.Y());
                 }
         }
         glEnd();

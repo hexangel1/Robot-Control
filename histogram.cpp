@@ -53,7 +53,7 @@ void Histogram::Output() const
 Valley *Histogram::GetValleys(double threshold) const
 {
         Valley *tmp, *ret = 0;
-        int start = 0, length = 0;       
+        int start = 0, length = 0;
         for (int k = 0; k < size; k++) {
                 if (ph[k] <= threshold && k != size - 1) {
                         length++;

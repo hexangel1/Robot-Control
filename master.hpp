@@ -6,8 +6,8 @@
 class Master : public Vehicle {
         Vector2d target;
 public:
-        Master(const Vector2d& coord, int colour)
-                : Vehicle(coord, colour), target(coord) {}
+        Master(const Vector2d& coord)
+                : Vehicle(coord, white), target(coord) {}
         virtual ~Master() {}
         virtual void ChangeTargets(const TargetSet& set);
         virtual Vector2d GetTarget() const { return target; }

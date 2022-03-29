@@ -22,7 +22,7 @@ void Environment::Init(GraphObjectItem *ptr)
 {
         for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++)
-                        map[i * width + j] = 
+                        map[i * width + j] =
                         GetValue(j * cell_size + cell_size / 2,
                                  i * cell_size + cell_size / 2, ptr);
         }
@@ -43,7 +43,6 @@ double Environment::GetValue(double x, double y, GraphObjectItem *ptr)
         return 0.0;
 }
 
-
 void Environment::CopyRegion(const Environment& map, double offx, double offy)
 {
         int offsetx = (int)offx / cell_size - width / 2;
@@ -60,12 +59,6 @@ void Environment::CopyRegion(const Environment& map, double offx, double offy)
 
 double Environment::Angle(int i, int j) const
 {
-/*        if (i == height / 2 && j == width / 2)
-                return 0; 
-        return sin((i - height / 2) / Distance(i, j)) >= 0 ? 
-               acos((j - width / 2) / Distance(i, j)) :
-               2*PI - acos((j - width / 2) / Distance(i, j));
-*/
         double u = offsy - ((height / 2) * cell_size) + i * cell_size;
         double v = offsx - ((width / 2) * cell_size) + j * cell_size;
         return ANGLE_2PI(atan2(u - offsy, v -offsx));

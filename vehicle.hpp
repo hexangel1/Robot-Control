@@ -43,7 +43,7 @@ private:
         double SpeedControl(int k) const;
         double GetAngel(int k) const;
         int GetSector(double phi) const;
-        Vector2d Direction(int k) const; 
+        Vector2d Direction(int k) const;
         double Score(int k) const;
         void Mapping(Environment& map, bool val) const;
         virtual void ChangeTargets(const TargetSet& set) = 0;

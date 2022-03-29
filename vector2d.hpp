@@ -38,12 +38,18 @@ public:
         friend Vector2d operator*(double a, const Vector2d& v);
         friend Vector2d operator/(const Vector2d& v, double a);
         friend double operator*(const Vector2d& v1, const Vector2d& v2);
+        friend double operator^(const Vector2d& v1, const Vector2d& v2);
         friend bool operator==(const Vector2d& v1, const Vector2d& v2);
         friend bool operator!=(const Vector2d& v1, const Vector2d& v2);
         friend bool operator>=(const Vector2d& v1, const Vector2d& v2);
         friend bool operator<=(const Vector2d& v1, const Vector2d& v2);
         friend bool operator>(const Vector2d& v1, const Vector2d& v2);
         friend bool operator<(const Vector2d& v1, const Vector2d& v2);
+};
+
+struct VertexItem {
+        Vector2d vec;
+        VertexItem *next;
 };
 
 #endif /* VECTOR2D_HPP_SENTRY */

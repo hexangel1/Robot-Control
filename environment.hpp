@@ -29,7 +29,6 @@ public:
         inline int Height() const { return height; }
         double GetValue(double x, double y, GraphObjectItem *ptr);
         static const int cell_size;
-
 #if DEBUG == 1
         void Display();
 #endif

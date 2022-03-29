@@ -5,12 +5,6 @@
 #include "manager.hpp"
 #include <GLFW/glfw3.h>
 
-const int Manager::colour_set[] = {
-        green, blue, yellow, magenta, cyan,
-        white, brown, khaki, indigo, orange,
-        rose, dred, dgreen, dblue
-};
- 
 Manager::Manager(int width, int height)
         : map(width / Environment::cell_size, height / Environment::cell_size)
 {
@@ -42,12 +36,15 @@ void Manager::Init()
                 AddObject(new Rectangle(Vector2d(i, 620), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
                 AddObject(new Ellipse(Vector2d(i, 820), red, 100, 50));
-        for (int i = 200; i < 1700; i += 400)
-                AddObject(new Rectangle(Vector2d(i, 200), red, 90, 200));
+        for (int i = 230; i < 1700; i += 400) {
+                Rectangle *q = new Rectangle(Vector2d(i, 210), red, 90, 200);
+                q->Rotate(DEG2RAD(30.0));
+                AddObject(q);
+        }
         for (int i = 400; i < 1700; i += 400)
-                AddObject(new Ellipse(Vector2d(i, 300), red, 50, 100));
+                AddObject(new Pentagon(Vector2d(i, 330), red, 50));
         for (int i = 400; i < 1700; i += 400)
-                AddObject(new Triangle(Vector2d(i, 550), red, 70));
+                AddObject(new Hexagon(Vector2d(i, 600), red, 50));
         Vehicle::ReadConfig("scripts/script1/config.txt");
         InitMap("scripts/script1/map.txt");
         map.Init(objects);
@@ -62,9 +59,14 @@ void Manager::Init()
 void Manager::SetTarget(double x, double y)
 {
         static int i = 0;
+        static const int colour_set[] = {
+                green, blue, yellow, magenta, cyan,
+                brown, khaki, indigo, orange, rose,
+                dred, dgreen, dblue
+        };
         set.Add(Vector2d(x, y), colour_set[i]);
-        i++;
         set.Show();
+        i++;
 }
 
 bool Manager::IsComment(const char *str)
@@ -146,8 +148,8 @@ void Manager::AddObject(GraphObject *ptr)
 void Manager::SetRobot(double x, double y)
 {
         static int i = 0;
-        Master *m = new Master(Vector2d(x, y), red);
-        Slave *s = new Slave(Vector2d(x + 0.0, y - 30.0), colour_set[i], 0);
+        Master *m = new Master(Vector2d(x, y));
+        Slave *s = new Slave(Vector2d(x + 0.0, y - 30.0), 0);
         i++;
         s->Bind(m);
         AddVehicle(m);
