@@ -26,11 +26,6 @@ enum colour_constants {
         dblue   = 0x000080
 };
 
-struct GraphObjectItem {
-        class GraphObject *elem;
-        GraphObjectItem *next;
-};
-
 class GraphObject {
 protected:
         Vector2d coord;

@@ -3,21 +3,24 @@
 #include <cstring>
 #include <ctype.h>
 #include <cmath>
+#ifdef GRAPHICS_ENABLE
 #include <GLFW/glfw3.h>
+#endif
 #include "vehicle.hpp"
 
 int Vehicle::window_size = 41;
 int Vehicle::histogram_size = 72;
 int Vehicle::max_valley_size = 21;
 double Vehicle::vehicle_radius = 6.0;
-double Vehicle::speed_constant = 0.015;
+double Vehicle::sample_time = 0.015;
 double Vehicle::boost_resist = 0.75;
-double Vehicle::max_speed = 100.0;
+double Vehicle::master_max_speed = 100.0;
+double Vehicle::slave_max_speed = 100.0;
 double Vehicle::max_boost = 140.0;
 double Vehicle::max_angle_speed = 1.5708;
 double Vehicle::max_obstacle_density = 20.0;
 
-Vehicle::Vehicle(const Vector2d& coord, int colour)
+Vehicle::Vehicle(const Vector2d& coord, double speedmax, int colour)
         : Circle(coord, colour, vehicle_radius),
         active_region(window_size, window_size),
         obstacle_density(histogram_size)
@@ -28,18 +31,19 @@ Vehicle::Vehicle(const Vector2d& coord, int colour)
         angular_speed = 0.0;
         stopped = false;
         vall = 0;
+        max_speed = speedmax;
 }
 
-void Vehicle::Update(Environment& map, const TargetSet& set)
+void Vehicle::Update(Environment& map, const Array<Circle>& targets)
 {
-        if (stopped)
-                return;
+//        if (stopped)
+//                return;
         FreeValleys();
-        ChangeTargets(set);
+        ChangeTargets(targets);
         Mapping(map, false);
-        coord += speed_constant * speed * Vector2d(cos(angle), sin(angle));
-        angle += speed_constant * angular_speed;
-        speed += boost;
+        coord += sample_time * speed * Vector2d(cos(angle), sin(angle));
+        angle += sample_time * angular_speed;
+        speed += sample_time * boost;
         angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
         speed = SAT(speed, 0.0, max_speed);
         active_region.CopyRegion(map, coord.X(), coord.Y());
@@ -48,14 +52,6 @@ void Vehicle::Update(Environment& map, const TargetSet& set)
         vall = obstacle_density.GetValleys(5.0);
         Control();
         Mapping(map, true);
-}
-
-void Vehicle::WriteLog() const
-{
-        fprintf(stderr, "x     = %f\n", coord.X());
-        fprintf(stderr, "y     = %f\n", coord.Y());
-        fprintf(stderr, "angle = %f\n", angle);
-        fprintf(stderr, "speed = %f\n", speed);
 }
 
 void Vehicle::Control()
@@ -70,6 +66,8 @@ void Vehicle::Control()
         else
                 phi1 *= -1;
         angular_speed = use_phi1 ? phi1 : phi2;
+        if (speed < 2.0)
+                angular_speed += Normal(0, 1);
         angular_speed = SAT(angular_speed, -max_angle_speed, max_angle_speed);
         double r = boost_resist * fabs(angular_speed) / max_angle_speed;
         s = fmin(s, (1.0 - r) * max_speed);
@@ -149,6 +147,7 @@ Vector2d Vehicle::Direction(int k) const
         return dir;
 }
 
+#ifdef GRAPHICS_ENABLE
 void Vehicle::ShowDirection() const
 {
         Vector2d a = coord + 23.0 * Vector2d(cos(angle), sin(angle));
@@ -192,13 +191,14 @@ void Vehicle::ShowFreeValleys() const
         }
         glEnd();
 }
+#endif
 
 void Vehicle::Mapping(Environment& map, bool s) const
 {
         double x, y;
         int size = Environment::cell_size;
-        for (x = -Radius(); x < Radius(); x++) {
-                for (y = -Radius(); y < Radius(); y++) {
+        for (x = -Radius(); x <= Radius(); x++) {
+                for (y = -Radius(); y <= Radius(); y++) {
                         if (IsInside(coord + Vector2d(x, y))) {
                                 int j = (int)(coord.X() + x) / size;
                                 int i = (int)(coord.Y() + y) / size;
@@ -240,12 +240,14 @@ void Vehicle::SetValue(const char *var, const char *value)
                 max_valley_size = atoi(value);
         else if (!strcmp(var, "vehicle_radius"))
                 vehicle_radius = atof(value);
-        else if (!strcmp(var, "speed_constant"))
-                speed_constant = atof(value);
-        else if (!strcmp(var, "max_speed"))
-                max_speed = atof(value);
+        else if (!strcmp(var, "sample_time"))
+                sample_time = atof(value);
+        else if (!strcmp(var, "slave_max_speed"))
+                slave_max_speed = atof(value);
+        else if (!strcmp(var, "master_max_speed"))
+                master_max_speed = atof(value);
         else if (!strcmp(var, "boost_resist"))
-                max_speed = atof(value);
+                boost_resist = atof(value);
         else if (!strcmp(var, "max_boost"))
                 max_boost = atof(value);
         else if (!strcmp(var, "max_angle_speed"))
@@ -254,5 +256,25 @@ void Vehicle::SetValue(const char *var, const char *value)
                 max_obstacle_density = atof(value);
         else
                 fprintf(stderr, "variable %s not found\n", var);
+}
+
+double Vehicle::Normal(double ex, double dx)
+{
+        double z, sum = 0;
+        const int n = 12;
+        for (int i = 0; i < n; i++)
+                sum += Random();
+        z = (sum - (double)n / 2.0) / sqrt((double)n / 12.0);
+        return z * dx + ex;
+}
+
+double Vehicle::Uniform(double a, double b)
+{
+        return a + (b - a) * Random();
+}
+
+double Vehicle::Random()
+{
+        return (double)rand() / (double)RAND_MAX;
 }
 

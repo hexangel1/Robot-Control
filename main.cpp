@@ -2,9 +2,14 @@
 #include <cstdlib>
 #include <ctime>
 #include <cassert>
+#include "manager.hpp"
+
+static const int window_width = 1920;
+static const int window_height = 1000;
+
+#ifdef GRAPHICS_ENABLE
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "manager.hpp"
 
 struct InputState {
         bool keys[1024];
@@ -18,8 +23,6 @@ struct InputState {
 
 static InputState Input;
 static const char *const title = "Robot Group Control Simulator";
-static const int window_width = 1920;
-static const int window_height = 1000;
 
 static void key_pressed(GLFWwindow *window, int key, int code,
                         int action, int mode)
@@ -124,15 +127,11 @@ static void init_input(void)
         Input.last_y = 0.0;
 }
 
-static void process_input(bool& paused, bool& info, bool& drop, int& speed)
+static void process_input(bool& paused, bool& info, int& speed)
 {
         if (Input.keys['Q'] && !Input.lock['Q']) {
                 Input.lock['Q'] = true;
                 paused = !paused;
-        }
-        if (Input.keys['Y'] && !Input.lock['Y']) {
-                Input.lock['Y'] = true;
-                drop = true;
         }
         if (Input.keys['E'] && !Input.lock['E']) {
                 Input.lock['E'] = true;
@@ -149,44 +148,53 @@ static void process_input(bool& paused, bool& info, bool& drop, int& speed)
                         speed--;
         }
 }
+#endif
 
-static void main_loop(GLFWwindow *window)
+static void main_loop(unsigned long T)
 {
+#ifdef GRAPHICS_ENABLE
+        GLFWwindow *window = init_gl_context();
+        if (!window)
+                exit(1);
+        setup_view();
+        init_input();
+#endif
         Manager Model(window_width, window_height);
-        bool paused = true;
-        bool info = false;
-        bool drop = false;
-        int speed = 1;
         Model.Init();
-        for (;;) {
+        unsigned long t; 
+#ifdef GRAPHICS_ENABLE
+        bool paused = true, info = false;
+        int speed = 1;
+        for (t = 0; t < T; t += speed) {
                 glfwPollEvents();
                 if (glfwWindowShouldClose(window))
                         break;
-                process_input(paused, info, drop, speed);
+                process_input(paused, info, speed);
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 for (int i = 0; !paused && i < speed; i++)
-                        Model.Update();
-                Model.Show(info, drop);
-                drop = false;
+                        Model.Sample();
+                Model.Show(info);
                 glFlush();
                 assert(glGetError() == GL_NO_ERROR);
                 glfwSwapBuffers(window);
         }
+        glfwDestroyWindow(window);
+        glfwTerminate(); 
+#else
+        for (t = 0; t < T; t++)
+                Model.Sample();
+#endif
+        Model.PrintStatistics();
 }
 
-int main()
+int main(int argc, char **argv)
 {
-        GLFWwindow *window;
-        window = init_gl_context();
-        if (!window)
-                return 1;
-        setup_view();
-        init_input();
-        srand(1);
-        main_loop(window);
-        glfwDestroyWindow(window);
-        glfwTerminate();
+        unsigned long T = 20000;
+        if (argc > 1)
+                T = atoi(argv[1]);
+        srand(7);
+        main_loop(T);
         return 0;
 }
 

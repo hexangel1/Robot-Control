@@ -5,30 +5,40 @@
 #include "master.hpp"
 #include "slave.hpp"
 #include "graphobject.hpp"
-#include "targetset.hpp"
+#include "array.hpp"
 
 class Manager {
         Environment map;
-        TargetSet set;
-        GraphObjectItem *objects;
-        Vehicle **robots;
-        int allocated;
-        int amount;
+        Array<Vehicle> robots;
+        Array<Circle> targets;
+        Array<GraphObject> obstacles;
+        unsigned long simulation_time;
+        unsigned long target_visited_sum;
+        unsigned long target_visited_min;
+        unsigned long lead_loss_time_sum;
+        unsigned long lead_loss_time_max; 
+        unsigned long vehicle_crashes;
+        unsigned long obstacle_crashes;
+        bool *vehicle_collisions;
+        bool *obstacle_collisions;
         unsigned int box;
 public:
         Manager(int width, int height);
         ~Manager();
         void Init();
-        void Update();
-        void Show(bool info, bool drop);
+        void Sample();
+        void Show(bool info);
+        void PrintStatistics();
+        void CalculateStat();
 private:
-        void InitMap(const char *file);
-        void SetRobot(double x, double y);
+        void BuildMap();
+        void InitCollisionArrays();
+        void SetSlaves();
         void SetTarget(double x, double y);
-        void CheckCollision() const;
-        void AddObject(GraphObject *ptr);
-        void AddVehicle(Vehicle *ptr);
-        static bool IsComment(const char *str);
+        void ShowRobots() const;
+        void ShowTargets() const;
+        void ShowObstacles() const;
+        void CheckCollision();
 };
 
 #endif /* MANAGER_HPP_SENTRY */

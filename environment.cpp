@@ -18,13 +18,13 @@ Environment::Environment(int w, int h)
                 map[i] = 0.0;
 }
 
-void Environment::Init(GraphObjectItem *ptr)
+void Environment::Init(const Array<GraphObject>& obstacles)
 {
         for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++)
                         map[i * width + j] =
                         GetValue(j * cell_size + cell_size / 2,
-                                 i * cell_size + cell_size / 2, ptr);
+                                 i * cell_size + cell_size / 2, obstacles);
         }
 }
 
@@ -33,12 +33,11 @@ Environment::~Environment()
         delete[] map;
 }
 
-double Environment::GetValue(double x, double y, GraphObjectItem *ptr)
+double Environment::GetValue(double x, double y, const Array<GraphObject>& obs)
 {
-        while (ptr) {
-                if (ptr->elem->IsInside(Vector2d(x, y)))
+        for (size_t i = 0; i < obs.Size(); i++) {
+                if (obs[i]->IsInside(Vector2d(x, y)))
                         return 1.0;
-                ptr = ptr->next;
         }
         return 0.0;
 }

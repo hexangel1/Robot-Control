@@ -1,7 +1,8 @@
 #ifndef ENVIRONMENT_HPP_SENTRY
 #define ENVIRONMENT_HPP_SENTRY
 
-struct GraphObjectItem;
+struct GraphObject;
+#include "array.hpp"
 
 class Environment {
         int width;
@@ -11,7 +12,7 @@ class Environment {
         double offsy;
 public:
         Environment(int w, int h);
-        void Init(GraphObjectItem *ptr);
+        void Init(const Array<GraphObject>& obstacles);
         ~Environment();
         void CopyRegion(const Environment& map, double offx, double offy);
         double Angle(int i, int j) const;
@@ -27,7 +28,7 @@ public:
         }
         inline int Width() const { return width; }
         inline int Height() const { return height; }
-        double GetValue(double x, double y, GraphObjectItem *ptr);
+        double GetValue(double x, double y, const Array<GraphObject>& obst);
         static const int cell_size;
 #if DEBUG == 1
         void Display();
