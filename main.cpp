@@ -5,7 +5,7 @@
 #include "manager.hpp"
 
 static const int window_width = 1920;
-static const int window_height = 1000;
+static const int window_height = 990;
 
 #ifdef GRAPHICS_ENABLE
 #include <GL/glew.h>
@@ -161,11 +161,10 @@ static void main_loop(unsigned long T)
 #endif
         Manager Model(window_width, window_height);
         Model.Init();
-        unsigned long t; 
 #ifdef GRAPHICS_ENABLE
         bool paused = true, info = false;
         int speed = 1;
-        for (t = 0; t < T; t += speed) {
+        while (Model.Time() < T) {
                 glfwPollEvents();
                 if (glfwWindowShouldClose(window))
                         break;
@@ -182,7 +181,7 @@ static void main_loop(unsigned long T)
         glfwDestroyWindow(window);
         glfwTerminate(); 
 #else
-        for (t = 0; t < T; t++)
+        while (Model.Time() < T)
                 Model.Sample();
 #endif
         Model.PrintStatistics();
@@ -191,10 +190,10 @@ static void main_loop(unsigned long T)
 int main(int argc, char **argv)
 {
         unsigned long T = 20000;
+        Vehicle::ReadConfig("scripts/script1/config.txt");
         if (argc > 1)
-                T = atoi(argv[1]);
-        srand(7);
+                T = atol(argv[1]);
+        srand(1210);
         main_loop(T);
         return 0;
 }
-

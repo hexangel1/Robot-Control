@@ -7,8 +7,7 @@
         #include <GLFW/glfw3.h>
 #endif
 
-const int Environment::cell_size = 4;
-
+const int Environment::cell_size = 2;
 Environment::Environment(int w, int h)
 {
         width = w;

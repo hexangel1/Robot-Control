@@ -37,6 +37,8 @@ Manager::~Manager()
 void Manager::PrintStatistics()
 {
         CalculateStat();
+        printf("Robots amount: %ld\n", robots.Size());
+        printf("Simulation time: %ld\n", simulation_time);
         printf("Target visited mean:  %.1f\n",
                static_cast<double>(target_visited_sum) /
                static_cast<double>(robots.Size() / 2));
@@ -53,7 +55,7 @@ void Manager::PrintStatistics()
 
 void Manager::Init()
 {
-        Vehicle::ReadConfig("scripts/script1/config.txt");
+//        Vehicle::ReadConfig("scripts/script1/config.txt");
         BuildMap();
         map.Init(obstacles);
         InitCollisionArrays();
@@ -63,6 +65,8 @@ void Manager::Init()
         ShowObstacles();
         glEndList();
 #endif
+        printf("height = %i\n", map.Height());
+        printf("width  = %i\n", map.Width());
 }
 
 void Manager::BuildMap()
@@ -88,11 +92,8 @@ void Manager::BuildMap()
                 obstacles.Add(new Rectangle(Vector2d(i, 620), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
                 obstacles.Add(new Ellipse(Vector2d(i, 820), red, 100, 50));
-        for (int i = 230; i < 1700; i += 400) {
-                Rectangle *q = new Rectangle(Vector2d(i, 210), red, 90, 200);
-                q->Rotate(DEG2RAD(30.0));
-                obstacles.Add(q);
-        }
+        for (int i = 230; i < 1700; i += 400)
+                obstacles.Add(new Rectangle(Vector2d(i, 210), red, 90, 200));
         for (int i = 400; i < 1700; i += 400)
                 obstacles.Add(new Pentagon(Vector2d(i, 330), red, 50));
         for (int i = 400; i < 1700; i += 400)
@@ -193,6 +194,8 @@ void Manager::SetSlaves()
 void Manager::CheckCollision()
 {
         size_t idx = 0;
+        if (robots.Size() == 0)
+                return;
         for (size_t i = 0; i < robots.Size() - 1; i++) {
                 for (size_t j = i + 1; j < robots.Size(); j++, idx++) {
                         Vector2d v = robots[i]->GetXY() - robots[j]->GetXY();

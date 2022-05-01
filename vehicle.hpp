@@ -16,7 +16,6 @@ class Vehicle : public Circle {
         double max_speed;
         Environment active_region;
         Histogram obstacle_density;
-        Valley *vall;
 protected:
         static int window_size;
         static int histogram_size;
@@ -29,9 +28,10 @@ protected:
         static double max_boost;
         static double max_angle_speed;
         static double max_obstacle_density;
+        static double max_distance;
 public:
         Vehicle(const Vector2d& coord, double speedmax, int colour);
-        virtual ~Vehicle() { FreeValleys(); }
+        virtual ~Vehicle() {}
         void Update(Environment& map, const Array<Circle>& targets);
         void Stop() { stopped = true; }
         void ShowDirection() const;
@@ -40,10 +40,9 @@ public:
         static bool ReadConfig(const char *file);
 private:
         void Control();
-        void FreeValleys();
-        int SteerControl() const;
+        Vector2d SteerControl() const;
         double SpeedControl(int k) const;
-        double GetAngel(int k) const;
+        double GetAngle(int k) const;
         int GetSector(double phi) const;
         Vector2d Direction(int k) const;
         double Score(int k) const;

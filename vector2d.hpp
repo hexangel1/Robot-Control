@@ -4,6 +4,7 @@
 #include <cmath>
 #define PI 3.1415926535
 #define SAT(v, a, b) ((v) >= (a) && (v) <= (b) ? (v) : ((v) > (b) ? (b) : (a)))
+#define SGN(a) ((a) >= 0.0 ? 1.0 : -1.0)
 #define ANGLE_2PI(v) ((v) < 0.0 ? (v) + 2 * PI : (v))
 #define RAD2DEG(param) ((param) * 180.0 / PI)
 #define DEG2RAD(param) ((param) * PI / 180.0)
@@ -45,6 +46,7 @@ public:
         friend bool operator<=(const Vector2d& v1, const Vector2d& v2);
         friend bool operator>(const Vector2d& v1, const Vector2d& v2);
         friend bool operator<(const Vector2d& v1, const Vector2d& v2);
+        static Vector2d Direction(double phi);
 };
 
 struct VertexItem {

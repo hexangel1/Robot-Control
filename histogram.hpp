@@ -13,14 +13,17 @@ struct Valley {
 class Histogram {
         double *ph;
         int size;
+        Valley *val;
 public:
         Histogram(int len);
         ~Histogram();
-        double operator[](int idx) const { return ph[(idx + size) % size]; }
         void Build(const Environment& region);
         void Smooth();
+        void SearchValleys(double threshold);
+        void DeleteValleys(); 
         void Output() const;
-        Valley *GetValleys(double threshold) const;
+        Valley *GetValleys() const { return val; }
+        double operator[](int idx) const { return ph[(idx + size) % size]; } 
 };
 
 #endif /* HISTOGRAM_HPP_SENTRY */

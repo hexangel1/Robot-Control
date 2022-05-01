@@ -30,6 +30,7 @@ public:
         void Show(bool info);
         void PrintStatistics();
         void CalculateStat();
+        unsigned long Time() const { return simulation_time; }
 private:
         void BuildMap();
         void InitCollisionArrays();
