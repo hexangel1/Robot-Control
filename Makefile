@@ -4,7 +4,7 @@ HEADERS = $(filter-out main.hpp, $(SOURCES:.cpp=.hpp))
 OBJECTS = $(SOURCES:.cpp=.o)
 CXX = g++
 CXXFLAGS = -Wall -g -O2 -std=c++98 -pedantic \
-           -D GRAPHICS_ENABLE -D CHECK_OBSTACLES
+           -D GRAPHICS_dNABLE #-D CHECK_OBSTACLES
 LDLIBS = -lglfw -lGL -lGLEW -lX11 -lXau -ldl -pthread -lm
 CTAGS = /usr/bin/ctags
 INSTALL = /usr/bin/install

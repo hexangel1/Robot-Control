@@ -12,7 +12,6 @@ int Vehicle::window_size = 41;
 int Vehicle::histogram_size = 72;
 int Vehicle::max_valley_size = 21;
 double Vehicle::vehicle_radius = 6.0;
-double Vehicle::sample_time = 0.015;
 double Vehicle::boost_resist = 0.75;
 double Vehicle::master_max_speed = 100.0;
 double Vehicle::slave_max_speed = 100.0;
@@ -42,12 +41,12 @@ void Vehicle::Update(Environment& map, const Array<Circle>& targets)
         angle += angular_speed;
         speed += boost;
         angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
-        speed = SAT(speed, 0.0, max_speed);
+        speed = SAT(0.01 + speed, 0.01, max_speed);
         active_region.CopyRegion(map, coord.X(), coord.Y());
         obstacle_density.Build(active_region);
         obstacle_density.Smooth();
         obstacle_density.DeleteValleys();
-        obstacle_density.SearchValleys(1.0);
+        obstacle_density.SearchValleys(0.01);
         Control();
         Mapping(map, true);
 }
@@ -59,7 +58,7 @@ void Vehicle::Control()
         double s = SpeedControl(GetSector(angle));
         angular_speed = SGN(cur_dir ^ dir) * acos(cur_dir * dir);
         if (speed <= 0.05)
-                angular_speed += Normal(0, 0.001);
+                angular_speed += Normal(0, 0.15);
         angular_speed = SAT(angular_speed, -max_angle_speed, max_angle_speed);
         double r = boost_resist * fabs(angular_speed) / max_angle_speed;
         s = fmin(s, (1.0 - r) * max_speed);
@@ -87,11 +86,9 @@ Vector2d Vehicle::SteerControl() const
                         best = tmp;
                 }
         }
-        if (!best)
-                return Vector2d();
         Vector2d k_targ = GetTarget() - coord;
         k_targ.Normalize();
-        if (best->begin == 0 && best->end == histogram_size - 1)
+        if (!best || (best->begin == 0 && best->end == histogram_size - 1))
                 return k_targ;
         Vector2d k1 = Vector2d::Direction(GetAngle(best->begin));
         Vector2d k2 = Vector2d::Direction(GetAngle(best->end));
@@ -99,34 +96,26 @@ Vector2d Vehicle::SteerControl() const
                                                    max_valley_size));
         Vector2d k4 = Vector2d::Direction(GetAngle(best->end -
                                                    max_valley_size));
-        double phi = (k1 ^ k2) > 0.0 ? acos(k1 * k2) : 2 * PI - acos(k1 * k2);
-        if (RAD2DEG(phi) >= 130.0 && SGN(k_targ ^ k3) < 0.0 &&
-                                     SGN(k_targ ^ k4) > 0.0)
-                return k_targ;
-        
-        Vector2d k_n, k_f;
+        Vector2d v1, v2;
         if (best->size <= max_valley_size) {
-                k_n = k1;
-                k_f = k2;
-        } else {
-                if (Score(best->begin) > Score(best->end)) {
-                        k_n = k1;
-                        k_f = k3;
-                } else {
-                        k_n = k4;
-                        k_f = k2;
-                }
+                v1 = k1 + k2;
+                v1.Normalize();
+                return v1;
         }
-        Vector2d res = k_n + k_f;
-        res.Normalize();
-        res *= SGN(k_n ^ k_f);
-        return res;
+        v1 = k1 + k3;
+        v2 = k2 + k4;
+        v1.Normalize();
+        v2.Normalize();
+        Vector2d bis = Vector2d::Bis(v1, v2);
+        if (bis * k_targ >= bis * v1)
+                return k_targ;
+        return k1 * k_targ >= k2 * k_targ ? v1 : v2;  
 }
 
 double Vehicle::SpeedControl(int k) const
 {
         double max = 0.0;
-        for (int i = -2; i <= 2; i++) {
+        for (int i = -3; i <= 3; i++) {
                 if (obstacle_density[k + i] >= max)
                         max = obstacle_density[k + i];
         }
@@ -151,11 +140,11 @@ Vector2d Vehicle::Direction(int k) const
 #ifdef GRAPHICS_ENABLE
 void Vehicle::ShowDirection() const
 {
-        Vector2d a = coord + 23.0 * Vector2d(cos(angle), sin(angle));
-        Vector2d b = coord + 13.0 *
-                Vector2d(cos(angle + 0.5), sin(angle + 0.5));
-        Vector2d c = coord + 13.0 *
-                Vector2d(cos(angle - 0.5), sin(angle - 0.5));
+        Vector2d a = coord + 21.0 * Vector2d(cos(angle), sin(angle));
+        Vector2d b = coord + 12.0 *
+                Vector2d(cos(angle + 0.4), sin(angle + 0.4));
+        Vector2d c = coord + 12.0 *
+                Vector2d(cos(angle - 0.4), sin(angle - 0.4));
         glBegin(GL_TRIANGLES);
         glColor3ub(RED(red), GREEN(red), BLUE(red));
         glVertex2d(a.X(), a.Y());
@@ -185,7 +174,7 @@ void Vehicle::ShowFreeValleys() const
                 for (int k = tmp->begin; k <= tmp->end; k++) {
                         Vector2d dir = Direction(k);
                         Vector2d a = coord + dir * (Radius() + 8.0);
-                        Vector2d b = coord + dir * Radius() * 10.0;
+                        Vector2d b = coord + dir * Radius() * 8.0;
                         glColor3ub(RED(green), GREEN(green), BLUE(green));
                         glVertex2d(a.X(), a.Y());
                         glVertex2d(b.X(), b.Y());
@@ -198,12 +187,12 @@ void Vehicle::ShowFreeValleys() const
 void Vehicle::Mapping(Environment& map, bool s) const
 {
         double x, y;
-        int size = Environment::cell_size;
-        for (x = -Radius(); x <= Radius(); x++) {
-                for (y = -Radius(); y <= Radius(); y++) {
+        double size = Environment::cell_size;
+        for (x = -Radius(); x <= Radius(); x += 0.5) {
+                for (y = -Radius(); y <= Radius(); y+= 0.5) {
                         if (IsInside(coord + Vector2d(x, y))) {
-                                int j = (int)(coord.X() + x) / size;
-                                int i = (int)(coord.Y() + y) / size;
+                                int j = int((coord.X() + x) / size);
+                                int i = int((coord.Y() + y) / size);
                                 map.Set(i, j, s ? 1.0 : 0.0);
                         }
                 }
@@ -242,8 +231,6 @@ void Vehicle::SetValue(const char *var, const char *value)
                 max_valley_size = atoi(value);
         else if (!strcmp(var, "vehicle_radius"))
                 vehicle_radius = atof(value);
-        else if (!strcmp(var, "sample_time"))
-                sample_time = atof(value);
         else if (!strcmp(var, "slave_max_speed"))
                 slave_max_speed = atof(value);
         else if (!strcmp(var, "master_max_speed"))

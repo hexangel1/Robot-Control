@@ -47,6 +47,7 @@ public:
         friend bool operator>(const Vector2d& v1, const Vector2d& v2);
         friend bool operator<(const Vector2d& v1, const Vector2d& v2);
         static Vector2d Direction(double phi);
+        static Vector2d Bis(const Vector2d& v1, const Vector2d& v2);
 };
 
 struct VertexItem {

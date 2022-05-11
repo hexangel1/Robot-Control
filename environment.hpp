@@ -29,7 +29,7 @@ public:
         inline int Width() const { return width; }
         inline int Height() const { return height; }
         double GetValue(double x, double y, const Array<GraphObject>& obst);
-        static const int cell_size;
+        static const double cell_size;
 #if DEBUG == 1
         void Display();
 #endif

@@ -37,8 +37,8 @@ Manager::~Manager()
 void Manager::PrintStatistics()
 {
         CalculateStat();
-        printf("Robots amount: %ld\n", robots.Size());
-        printf("Simulation time: %ld\n", simulation_time);
+ //       printf("Robots amount: %ld\n", robots.Size());
+ //       printf("Simulation time: %ld\n", simulation_time);
         printf("Target visited mean:  %.1f\n",
                static_cast<double>(target_visited_sum) /
                static_cast<double>(robots.Size() / 2));
@@ -50,12 +50,10 @@ void Manager::PrintStatistics()
                100.0 * static_cast<double>(lead_loss_time_max) /
                static_cast<double>(simulation_time));
         printf("Vehicle collision:  %ld\n", vehicle_crashes);
-        printf("Obstacle collision: %ld\n", obstacle_crashes);
 }
 
 void Manager::Init()
 {
-//        Vehicle::ReadConfig("scripts/script1/config.txt");
         BuildMap();
         map.Init(obstacles);
         InitCollisionArrays();
@@ -65,8 +63,6 @@ void Manager::Init()
         ShowObstacles();
         glEndList();
 #endif
-        printf("height = %i\n", map.Height());
-        printf("width  = %i\n", map.Width());
 }
 
 void Manager::BuildMap()
@@ -76,18 +72,24 @@ void Manager::BuildMap()
         robots.Add(new Master(Vector2d(100, 200)));
         robots.Add(new Master(Vector2d(1800, 150)));
         robots.Add(new Master(Vector2d(500, 250)));
+        robots.Add(new Master(Vector2d(250, 900)));
+        robots.Add(new Master(Vector2d(900, 200)));
+        robots.Add(new Master(Vector2d(1200, 200)));
+//        robots.Add(new Master(Vector2d(250, 900)));
+//        robots.Add(new Master(Vector2d(250, 900)));
         SetSlaves();
-        SetTarget(850, 450);
-        SetTarget(100, 100);
-        SetTarget(600, 920);
-        SetTarget(1250, 100);
-        SetTarget(150, 920);
-        SetTarget(990, 920);
-        SetTarget(1800, 300);
-        SetTarget(1800, 920);
-        SetTarget(1800, 500);
-        SetTarget(1400, 920);
-        SetTarget(450, 100);
+        SetTarget(150, 100);
+        SetTarget(530, 100);
+        SetTarget(910, 100);
+        SetTarget(1290, 100);
+        SetTarget(1670, 100);
+        
+        SetTarget(150, 900);
+        SetTarget(600, 900);
+        SetTarget(1000, 900);
+        SetTarget(1400, 900);
+        SetTarget(1800, 900);
+        SetTarget(900, 450);
         for (int i = 200; i < 1700; i += 400)
                 obstacles.Add(new Rectangle(Vector2d(i, 620), red, 100, 200));
         for (int i = 400; i < 1700; i += 400)
@@ -98,6 +100,9 @@ void Manager::BuildMap()
                 obstacles.Add(new Pentagon(Vector2d(i, 330), red, 50));
         for (int i = 400; i < 1700; i += 400)
                 obstacles.Add(new Hexagon(Vector2d(i, 600), red, 50));
+        obstacles.Add(new Triangle(Vector2d(1800, 500), red, 50));
+        for (int i = 50; i < 1800; i += 400)
+                obstacles.Add(new Triangle(Vector2d(i, 200), red, 50)); 
 }
 
 void Manager::CalculateStat()

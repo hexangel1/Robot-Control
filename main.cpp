@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cassert>
+#include <unistd.h>
 #include "manager.hpp"
 
 static const int window_width = 1920;
@@ -164,11 +165,17 @@ static void main_loop(unsigned long T)
 #ifdef GRAPHICS_ENABLE
         bool paused = true, info = false;
         int speed = 1;
+        GLfloat sample, last_frame = glfwGetTime();
         while (Model.Time() < T) {
                 glfwPollEvents();
                 if (glfwWindowShouldClose(window))
                         break;
+                sample = glfwGetTime() - last_frame;
+                last_frame = glfwGetTime();
+                unsigned long t = sample * 1e6;
                 process_input(paused, info, speed);
+                if (t <= 40000UL)
+                        usleep(40000UL - t);
                 glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 for (int i = 0; !paused && i < speed; i++)
@@ -189,11 +196,11 @@ static void main_loop(unsigned long T)
 
 int main(int argc, char **argv)
 {
-        unsigned long T = 20000;
-        Vehicle::ReadConfig("scripts/script1/config.txt");
+        unsigned long T = 10000;
+        Vehicle::ReadConfig("scripts/config.txt");
         if (argc > 1)
                 T = atol(argv[1]);
-        srand(1210);
+        srand(time(0));
         main_loop(T);
         return 0;
 }

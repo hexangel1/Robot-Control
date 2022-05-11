@@ -168,3 +168,11 @@ Vector2d Vector2d::Direction(double phi)
         return ret;
 }
 
+Vector2d Vector2d::Bis(const Vector2d& v1, const Vector2d& v2)
+{
+        Vector2d res = v1 + v2;
+        res.Normalize();
+        res *= SGN(v1 ^ v2);
+        return res;
+}
+

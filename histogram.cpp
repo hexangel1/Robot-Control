@@ -20,7 +20,7 @@ void Histogram::Build(const Environment& region)
 {
         double d_max = static_cast<double>(region.Width() - 1) * 
                        sqrt(2.0) / 2.0 * Environment::cell_size;
-        double a = 100.0;
+        double a = 10.0;
         double b = a / d_max;
         double alpha = 2 * PI / size;
         for (int k = 0; k < size; k++)

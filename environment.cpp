@@ -7,7 +7,8 @@
         #include <GLFW/glfw3.h>
 #endif
 
-const int Environment::cell_size = 2;
+const double Environment::cell_size = 1.5;
+
 Environment::Environment(int w, int h)
 {
         width = w;
@@ -22,8 +23,8 @@ void Environment::Init(const Array<GraphObject>& obstacles)
         for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++)
                         map[i * width + j] =
-                        GetValue(j * cell_size + cell_size / 2,
-                                 i * cell_size + cell_size / 2, obstacles);
+                        GetValue(j * cell_size + cell_size / 2.0,
+                                 i * cell_size + cell_size / 2.0, obstacles);
         }
 }
 
@@ -43,8 +44,8 @@ double Environment::GetValue(double x, double y, const Array<GraphObject>& obs)
 
 void Environment::CopyRegion(const Environment& map, double offx, double offy)
 {
-        int offsetx = (int)offx / cell_size - width / 2;
-        int offsety = (int)offy / cell_size - height / 2;
+        int offsetx = static_cast<int>(offx / cell_size) - width / 2;
+        int offsety = static_cast<int>(offy / cell_size) - height / 2;
         offsx = offx;
         offsy = offy;
         for (int i = 0; i < height; i++) {

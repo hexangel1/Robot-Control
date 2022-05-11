@@ -16,12 +16,11 @@ class Vehicle : public Circle {
         double max_speed;
         Environment active_region;
         Histogram obstacle_density;
-protected:
+public:
         static int window_size;
         static int histogram_size;
         static int max_valley_size;
         static double vehicle_radius;
-        static double sample_time;
         static double boost_resist;
         static double master_max_speed;
         static double slave_max_speed;
