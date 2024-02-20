@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include "manager.hpp"
 
-static const int window_width = 1920;
-static const int window_height = 990;
+static const int window_width = 1200;
+static const int window_height = 950;
 
 #ifdef GRAPHICS_ENABLE
 #include <GL/glew.h>
@@ -160,7 +160,7 @@ static void main_loop(unsigned long T)
         setup_view();
         init_input();
 #endif
-        Manager Model(window_width, window_height);
+        Manager Model(window_width, window_height, 300);
         Model.Init();
 #ifdef GRAPHICS_ENABLE
         bool paused = true, info = false;
@@ -191,7 +191,6 @@ static void main_loop(unsigned long T)
         while (Model.Time() < T)
                 Model.Sample();
 #endif
-        Model.PrintStatistics();
 }
 
 int main(int argc, char **argv)

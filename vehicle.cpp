@@ -33,9 +33,8 @@ Vehicle::Vehicle(const Vector2d& coord, double speedmax, int colour)
         max_speed = speedmax;
 }
 
-void Vehicle::Update(Environment& map, const Array<Circle>& targets)
+void Vehicle::Update(Environment& map, const Vector2d& k_targ)
 {
-        ChangeTargets(targets);
         Mapping(map, false);
         coord += speed * Vector2d(cos(angle), sin(angle));
         angle += angular_speed;
@@ -47,14 +46,26 @@ void Vehicle::Update(Environment& map, const Array<Circle>& targets)
         obstacle_density.Smooth();
         obstacle_density.DeleteValleys();
         obstacle_density.SearchValleys(0.01);
-        Control();
+        Control(k_targ);
         Mapping(map, true);
 }
 
-void Vehicle::Control()
+void Vehicle::Respawn(Environment& map, const Vector2d& spawn)
+{
+        Mapping(map, false);
+        coord = spawn;
+        angle = 0.0;
+        speed = 0.0;
+        boost = 0.0;
+        angular_speed = 0.0;
+        stopped = false;
+        Mapping(map, true);
+}
+
+void Vehicle::Control(const Vector2d& k_targ)
 {
         Vector2d cur_dir = Vector2d::Direction(angle);
-        Vector2d dir = SteerControl();
+        Vector2d dir = SteerControl(k_targ);
         double s = SpeedControl(GetSector(angle));
         angular_speed = SGN(cur_dir ^ dir) * acos(cur_dir * dir);
         if (speed <= 0.05)
@@ -75,19 +86,19 @@ int Vehicle::GetSector(double phi) const
         return phi / (2 * PI) * (double)histogram_size;
 }
 
-Vector2d Vehicle::SteerControl() const
+Vector2d Vehicle::SteerControl(const Vector2d& _k_targ) const
 {
         Valley *tmp, *best = 0;
+        Vector2d k_targ = _k_targ;
+        k_targ.Normalize();
         double score, best_score;
         for (tmp = obstacle_density.GetValleys(); tmp; tmp = tmp->next) {
-                score = fmax(Score(tmp->begin), Score(tmp->end));
+                score = fmax(Score(tmp->begin, k_targ), Score(tmp->end, k_targ));
                 if (!best || score > best_score) {
                         best_score = score;
                         best = tmp;
                 }
         }
-        Vector2d k_targ = GetTarget() - coord;
-        k_targ.Normalize();
         if (!best || (best->begin == 0 && best->end == histogram_size - 1))
                 return k_targ;
         Vector2d k1 = Vector2d::Direction(GetAngle(best->begin));
@@ -123,12 +134,10 @@ double Vehicle::SpeedControl(int k) const
         return max_speed * (1.0 - h / max_obstacle_density);
 }
 
-double Vehicle::Score(int k) const
+double Vehicle::Score(int k, const Vector2d& k_targ) const
 {
         Vector2d dir = Direction(k);
-        Vector2d goal = GetTarget() - coord;
-        goal.Normalize();
-        return goal * dir;
+        return k_targ * dir;
 }
 
 Vector2d Vehicle::Direction(int k) const
