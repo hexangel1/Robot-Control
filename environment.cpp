@@ -76,7 +76,7 @@ double Environment::Distance(int i, int j) const
 void Environment::Display()
 {
         glBegin(GL_QUADS);
-        int size = cell_size;
+        double size = cell_size;
         glColor3f(1.0, 0.0, 0.0);
         for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
