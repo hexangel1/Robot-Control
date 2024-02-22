@@ -2,56 +2,53 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctype.h>
+#include <GLFW/glfw3.h>
 
 #include "manager.hpp"
 #include "ddpg.hpp"
 
-#ifdef GRAPHICS_ENABLE
-#include <GLFW/glfw3.h>
-#endif
-
-Manager::Manager(int width, int height, int episode)
+Manager::Manager(int width, int height, unsigned int ep_iter,  unsigned int total_iter, bool graphics)
         : map(width / Environment::cell_size, height / Environment::cell_size),
         agents(false),
         evader_spawns(dgreen), pursuer_spawns(dred),
-        episode_iter(0), episode_length(episode)
+        episode_iter_max(ep_iter), simulation_time_max(total_iter), graphics_mode(graphics)
 {
         simulation_time = 0;
+        episode_iter = 0;
         vehicle_crashes = 0;
         obstacle_crashes = 0;
         vehicle_collisions = 0;
         obstacle_collisions = 0;
-#ifdef GRAPHICS_ENABLE
-        box = glGenLists(1);
-#endif
+        if (graphics_mode)
+                box = glGenLists(1);
 }
 
 Manager::~Manager()
 {
         delete[] vehicle_collisions;
         delete[] obstacle_collisions;
-#ifdef GRAPHICS_ENABLE
-        glDeleteLists(box, 1);
-#endif
+
+        if (graphics_mode)
+                glDeleteLists(box, 1);
 }
 
 void Manager::Init()
 {
         BuildMap();
         map.Init(obstacles);
-        InitCollisionArrays();
         for (size_t i = 0; i < pursuers.Size(); i++)
                 agents.Add(pursuers[i]);
         for (size_t i = 0; i < evaders.Size(); i++)
                 agents.Add(evaders[i]);
+        InitCollisionArrays();
         ddpg_conn = ddpg_connect();
-#ifdef GRAPHICS_ENABLE
-        glNewList(box, GL_COMPILE);
-        evader_spawns.SpawnCompile();
-        pursuer_spawns.SpawnCompile();
-        ShowObstacles();
-        glEndList();
-#endif
+        if (graphics_mode) {
+                glNewList(box, GL_COMPILE);
+                evader_spawns.SpawnCompile();
+                pursuer_spawns.SpawnCompile();
+                ShowObstacles();
+                glEndList();
+        }
 }
 
 void Manager::BuildMap()
@@ -95,7 +92,6 @@ void Manager::BuildMap()
                 obstacles.Add(new Triangle(Vector2d(i, 200), red, 50)); 
 }
 
-#ifdef GRAPHICS_ENABLE
 void Manager::Show(bool info)
 {
         glCallList(box);
@@ -121,7 +117,6 @@ void Manager::ShowObstacles() const
         for (size_t i = 0; i < obstacles.Size(); i++)
                 obstacles[i]->Show();
 }
-#endif
 
 void Manager::InitCollisionArrays()
 {
@@ -134,9 +129,8 @@ void Manager::InitCollisionArrays()
                 obstacle_collisions[i] = false;
 }
 
-double Manager::EvaluateReward(bool& done) const
+double Manager::EvaluateReward(int& done) const
 {
-        done = true;
         return 1.0;
 }
 
@@ -164,10 +158,15 @@ void Manager::NewEpisode()
 
 void Manager::Sample()
 {
+        if (episode_iter == 0) {
+                ddpg_response initial_state;
+                MakeResponse(&initial_state);
+                response_action(ddpg_conn, &initial_state);
+        }
         ddpg_action action_buf;
         get_action(ddpg_conn, &action_buf);
-        for (int i = 0; i < 6; i++)
-                action_buf.action[i] = 1.0;
+        // for (int i = 0; i < 6; i++)
+        //         action_buf.action[i] = 1.0;
         for (size_t i = 0; i < pursuers.Size(); i++)
                 pursuers[i]->Update(map, Vector2d(action_buf.action[i], action_buf.action[i+1]));
         for (size_t i = 0; i < evaders.Size(); i++)
@@ -176,9 +175,9 @@ void Manager::Sample()
         ddpg_response response_buf;
         MakeResponse(&response_buf);
         episode_iter++;
-        if (episode_iter == episode_length) {
+        if (episode_iter == episode_iter_max) {
                 NewEpisode();
-                response_buf.done = true;
+                response_buf.done = 1;
         }
         response_action(ddpg_conn, &response_buf);
         simulation_time++;

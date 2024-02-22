@@ -3,14 +3,12 @@
 #include <ctime>
 #include <cassert>
 #include <unistd.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "manager.hpp"
 
 static const int window_width = 1200;
 static const int window_height = 950;
-
-#ifdef GRAPHICS_ENABLE
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 struct InputState {
         bool keys[1024];
@@ -149,24 +147,13 @@ static void process_input(bool& paused, bool& info, int& speed)
                         speed--;
         }
 }
-#endif
 
-static void main_loop(unsigned long T)
+static void graphics_simulation(GLFWwindow *window, Manager& Model)
 {
-#ifdef GRAPHICS_ENABLE
-        GLFWwindow *window = init_gl_context();
-        if (!window)
-                exit(1);
-        setup_view();
-        init_input();
-#endif
-        Manager Model(window_width, window_height, 300);
-        Model.Init();
-#ifdef GRAPHICS_ENABLE
         bool paused = true, info = false;
         int speed = 1;
         GLfloat sample, last_frame = glfwGetTime();
-        while (Model.Time() < T) {
+        while (!Model.Finished()) {
                 glfwPollEvents();
                 if (glfwWindowShouldClose(window))
                         break;
@@ -186,20 +173,78 @@ static void main_loop(unsigned long T)
                 glfwSwapBuffers(window);
         }
         glfwDestroyWindow(window);
-        glfwTerminate(); 
-#else
-        while (Model.Time() < T)
-                Model.Sample();
-#endif
+        glfwTerminate();
+}
+
+static void main_loop(unsigned long T, unsigned int ep, bool graphics_mode)
+{
+        GLFWwindow *window = 0;
+        if (graphics_mode) {
+                window = init_gl_context();
+                if (!window)
+                        exit(1);
+                setup_view();
+                init_input();
+        }
+
+        Manager Model(window_width, window_height, ep, T, graphics_mode);
+        Model.Init();
+        if (graphics_mode) {
+                graphics_simulation(window, Model);
+        } else {
+                while (!Model.Finished())
+                        Model.Sample();
+        }
+}
+
+static bool graphics_mode = false;
+static unsigned int max_iterations = 10000;
+static unsigned int episode_length = 300;
+static unsigned int random_seed = -1;
+
+int get_command_line_options(int argc, char **argv)
+{
+    int opt, retval = 0;
+    extern char *optarg;
+    extern int optopt;
+    while ((opt = getopt(argc, argv, ":hgt:e:s:")) != -1) {
+        switch (opt) {
+        case 'h':
+            retval = -1;
+            break;
+        case 'g':
+            graphics_mode = true;
+            break;
+        case 't':
+            max_iterations = atoi(optarg);
+            break;
+        case 'e':
+            episode_length = atoi(optarg);
+            break;
+        case 's':
+            random_seed = atoi(optarg);
+            break;
+        case ':':
+            fprintf(stderr, "Opt -%c require an operand\n", optopt);
+            retval = -1;
+            break;
+        case '?':
+            fprintf(stderr, "Unrecognized option: -%c\n", optopt);
+            retval = -1;
+            break;
+        }
+    }
+    return retval;
 }
 
 int main(int argc, char **argv)
 {
-        unsigned long T = 10000;
+        get_command_line_options(argc, argv);
         Vehicle::ReadConfig("scripts/config.txt");
-        if (argc > 1)
-                T = atol(argv[1]);
-        srand(time(0));
-        main_loop(T);
+        if (random_seed != (unsigned int)-1)
+                srand(random_seed);
+        else
+                srand(time(0));
+        main_loop(max_iterations, episode_length, graphics_mode);
         return 0;
 }

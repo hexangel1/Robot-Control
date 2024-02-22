@@ -3,6 +3,7 @@
 
 #define PURSUADERS_AMOUNT 3
 
+#pragma pack(push, 1)
 struct ddpg_action {
         double action[PURSUADERS_AMOUNT * 2];
 };
@@ -10,8 +11,9 @@ struct ddpg_action {
 struct ddpg_response {
         double state[PURSUADERS_AMOUNT * 2 + 2];
         double reward;
-        bool done;
+        int done;
 };
+#pragma pack(pop)
 
 int ddpg_connect();
 

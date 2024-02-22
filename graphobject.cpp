@@ -1,9 +1,7 @@
 #include <cmath>
+#include <GLFW/glfw3.h>
 #include "graphobject.hpp"
 
-#ifdef GRAPHICS_ENABLE
-#include <GLFW/glfw3.h>
-#endif
 
 void GraphObject::Move(const Vector2d& move)
 {
@@ -24,7 +22,6 @@ Polygon::~Polygon()
 
 void Polygon::Show() const
 {
-#ifdef GRAPHICS_ENABLE
         VertexItem *tmp;
         glBegin(GL_POLYGON);
         glColor3ub(RED(colour), GREEN(colour), BLUE(colour));
@@ -33,12 +30,10 @@ void Polygon::Show() const
                 glVertex2d(v.X(), v.Y());
         }
         glEnd();
-#endif
 }
 
 void Polygon::Hide() const
 {
-#ifdef GRAPHICS_ENABLE
         VertexItem *tmp;
         glBegin(GL_POLYGON);
         glColor3ub(0, 0, 0);
@@ -47,7 +42,6 @@ void Polygon::Hide() const
                 glVertex2d(v.X(), v.Y());
         }
         glEnd();
-#endif
 }
 
 bool Polygon::IsInside(const Vector2d& v) const
@@ -113,7 +107,6 @@ RegularPolygon::RegularPolygon(const Vector2d& coord, int colour,
 
 void Ellipse::Show() const
 {
-#ifdef GRAPHICS_ENABLE
         glBegin(GL_TRIANGLE_FAN);
         glColor3ub(RED(colour), GREEN(colour), BLUE(colour));
         glVertex2f(coord.X(), coord.Y());
@@ -124,12 +117,10 @@ void Ellipse::Show() const
                 glVertex2d(coord.X() + dx, coord.Y() + dy);
         }
         glEnd();
-#endif
 }
 
 void Ellipse::Hide() const
 {
-#ifdef GRAPHICS_ENABLE
         glBegin(GL_TRIANGLE_FAN);
         glColor3ub(0, 0, 0);
         glVertex2f(coord.X(), coord.Y());
@@ -140,7 +131,6 @@ void Ellipse::Hide() const
                 glVertex2d(coord.X() + dx, coord.Y() + dy);
         }
         glEnd();
-#endif
 }
 
 bool Ellipse::IsInside(const Vector2d& v) const

@@ -10,36 +10,40 @@
 
 class Manager {
         Environment map;
-
         Array<Pursuer> pursuers;
         Array<Evader> evaders;
         Array<Vehicle> agents;
         Array<GraphObject> obstacles;
         SpawnSet evader_spawns;
         SpawnSet pursuer_spawns;
-        unsigned long simulation_time;
-        unsigned long vehicle_crashes;
-        unsigned long obstacle_crashes;
+
         bool *vehicle_collisions;
         bool *obstacle_collisions;
+        unsigned int vehicle_crashes;
+        unsigned int obstacle_crashes;
         unsigned int box;
         int ddpg_conn;
-        int episode_iter;
-        int episode_length;
+
+        unsigned int episode_iter;
+        unsigned int simulation_time;
+        const unsigned int episode_iter_max;
+        const unsigned int simulation_time_max;
+        bool graphics_mode;
 public:
-        Manager(int width, int height, int episode);
+        Manager(int width, int height, unsigned int ep_iter, unsigned int total_iter,
+                bool graphics);
         ~Manager();
         void Init();
         void Sample();
         void Show(bool info);
-        unsigned long Time() const { return simulation_time; }
+        bool Finished() const { return simulation_time >= simulation_time_max; }
 private:
         void BuildMap();
         void InitCollisionArrays();
         void NewEpisode();
         void ShowRobots() const;
         void ShowObstacles() const;
-        double EvaluateReward(bool& done) const;
+        double EvaluateReward(int& done) const;
         void CheckCollision();
         void MakeResponse(ddpg_response *resp) const;
 };

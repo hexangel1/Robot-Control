@@ -3,9 +3,8 @@
 #include <cstring>
 #include <ctype.h>
 #include <cmath>
-#ifdef GRAPHICS_ENABLE
 #include <GLFW/glfw3.h>
-#endif
+
 #include "vehicle.hpp"
 
 int Vehicle::window_size = 41;
@@ -146,7 +145,6 @@ Vector2d Vehicle::Direction(int k) const
         return Vector2d::Direction(k * step + step / 2.0);
 }
 
-#ifdef GRAPHICS_ENABLE
 void Vehicle::ShowDirection() const
 {
         Vector2d a = coord + 21.0 * Vector2d(cos(angle), sin(angle));
@@ -191,7 +189,6 @@ void Vehicle::ShowFreeValleys() const
         }
         glEnd();
 }
-#endif
 
 void Vehicle::Mapping(Environment& map, bool s) const
 {
