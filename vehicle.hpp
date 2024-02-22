@@ -37,6 +37,7 @@ public:
         void ShowDirection() const;
         void ShowFreeValleys() const;
         void ShowActiveWindow() const;
+        Vector2d CurrentDirection() const;
         static bool ReadConfig(const char *file);
 private:
         void Control(const Vector2d& k_targ);

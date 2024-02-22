@@ -17,6 +17,8 @@ class Manager {
         SpawnSet evader_spawns;
         SpawnSet pursuer_spawns;
 
+        double *pursuer_distance;
+        double *pursuer_distance_old;
         bool *vehicle_collisions;
         bool *obstacle_collisions;
         unsigned int vehicle_crashes;
@@ -43,6 +45,7 @@ private:
         void NewEpisode();
         void ShowRobots() const;
         void ShowObstacles() const;
+        void EvalDistances() const;
         double EvaluateReward(int& done) const;
         void CheckCollision();
         void MakeResponse(ddpg_response *resp) const;

@@ -198,9 +198,9 @@ static void main_loop(unsigned long T, unsigned int ep, bool graphics_mode)
 }
 
 static bool graphics_mode = false;
-static unsigned int max_iterations = 10000;
-static unsigned int episode_length = 300;
-static unsigned int random_seed = -1;
+static unsigned int max_iterations = 500000;
+static unsigned int episode_length = 500;
+static unsigned int random_seed = 42;
 
 int get_command_line_options(int argc, char **argv)
 {

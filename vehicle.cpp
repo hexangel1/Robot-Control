@@ -35,17 +35,22 @@ Vehicle::Vehicle(const Vector2d& coord, double speedmax, int colour)
 void Vehicle::Update(Environment& map, const Vector2d& k_targ)
 {
         Mapping(map, false);
-        coord += speed * Vector2d(cos(angle), sin(angle));
-        angle += angular_speed;
-        speed += boost;
-        angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
-        speed = SAT(0.01 + speed, 0.01, max_speed);
+        // coord += speed * Vector2d(cos(angle), sin(angle));
+        // angle += angular_speed;
+        // speed += boost;
+        // angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
+        // speed = SAT(0.01 + speed, 0.01, max_speed);
         active_region.CopyRegion(map, coord.X(), coord.Y());
         obstacle_density.Build(active_region);
         obstacle_density.Smooth();
         obstacle_density.DeleteValleys();
         obstacle_density.SearchValleys(0.01);
         Control(k_targ);
+        coord += speed * Vector2d(cos(angle), sin(angle));
+        angle += angular_speed;
+        speed += boost;
+        angle = sin(angle) < 0.0 ? 2 * PI - acos(cos(angle)) : acos(cos(angle));
+        speed = SAT(0.01 + speed, 0.01, max_speed);
         Mapping(map, true);
 }
 
@@ -188,6 +193,11 @@ void Vehicle::ShowFreeValleys() const
                 }
         }
         glEnd();
+}
+
+Vector2d Vehicle::CurrentDirection() const
+{
+        return Vector2d(cos(angle), sin(angle));
 }
 
 void Vehicle::Mapping(Environment& map, bool s) const

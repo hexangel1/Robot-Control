@@ -118,11 +118,21 @@ void Manager::ShowObstacles() const
                 obstacles[i]->Show();
 }
 
+void Manager::EvalDistances() const
+{
+        for (size_t i = 0; i < pursuers.Size(); i++)
+                pursuer_distance[i] = (pursuers[i]->GetXY() - evaders[0]->GetXY()).Module();
+}
+
 void Manager::InitCollisionArrays()
 {
         size_t size = agents.Size() * (agents.Size() - 1) / 2;
         vehicle_collisions = new bool[size];
         obstacle_collisions = new bool[agents.Size()];
+        pursuer_distance = new double[pursuers.Size()];
+        pursuer_distance_old = new double[pursuers.Size()];
+        EvalDistances();
+        memcpy(pursuer_distance_old, pursuer_distance, sizeof(double)*pursuers.Size());
         for (size_t i = 0; i < size; i++)
                 vehicle_collisions[i] = false;
         for (size_t i = 0; i < agents.Size(); i++)
@@ -131,15 +141,34 @@ void Manager::InitCollisionArrays()
 
 double Manager::EvaluateReward(int& done) const
 {
-        return 1.0;
+        double reward = 0.0;
+        EvalDistances();
+        for (size_t i = 0; i < pursuers.Size(); i++) {
+                Vector2d target = evaders[0]->GetXY() - pursuers[i]->GetXY();
+                target.Normalize();
+                if (pursuers[i]->CurrentDirection() * target >= 0.3)
+                        reward += 1.0;
+                else
+                        reward -= 1.0;
+                if (pursuer_distance[i] < 100.0) {
+                        fprintf(stderr, "KKNN!!\n");
+                        reward = 500.0;
+                        done = true;
+                        break;
+                }
+        }
+        return reward;
 }
 
 void Manager::MakeResponse(ddpg_response *resp) const
 {
         for (size_t i = 0; i < agents.Size(); i++) {
                 Vector2d coord = agents[i]->GetXY();
-                resp->state[2 * i] = coord.X();
-                resp->state[2 * i + 1] = coord.Y();
+                Vector2d dir = agents[i]->CurrentDirection();
+                resp->state[4 * i] = coord.X();
+                resp->state[4 * i + 1] = coord.Y();
+                resp->state[4 * i + 2] = dir.X();
+                resp->state[4 * i + 3] = dir.Y();
         }
         resp->done = false;
         resp->reward = EvaluateReward(resp->done);
@@ -175,12 +204,16 @@ void Manager::Sample()
         ddpg_response response_buf;
         MakeResponse(&response_buf);
         episode_iter++;
-        if (episode_iter == episode_iter_max) {
+        if (episode_iter == episode_iter_max || response_buf.done) {
                 NewEpisode();
                 response_buf.done = 1;
         }
         response_action(ddpg_conn, &response_buf);
         simulation_time++;
+        double *tmp;
+        tmp = pursuer_distance;
+        pursuer_distance = pursuer_distance_old;
+        pursuer_distance_old = tmp;
 }
 
 void Manager::CheckCollision()
