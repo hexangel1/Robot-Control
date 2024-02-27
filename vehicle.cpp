@@ -197,7 +197,7 @@ void Vehicle::ShowFreeValleys() const
 
 Vector2d Vehicle::CurrentDirection() const
 {
-        return Vector2d(cos(angle), sin(angle));
+        return Vector2d::Direction(angle);
 }
 
 void Vehicle::Mapping(Environment& map, bool s) const

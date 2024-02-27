@@ -11,6 +11,7 @@ Manager::Manager(int width, int height, unsigned int ep_iter,  unsigned int tota
         : map(width / Environment::cell_size, height / Environment::cell_size),
         agents(false),
         evader_spawns(dgreen), pursuer_spawns(dred),
+        env_width(width), env_height(height),
         episode_iter_max(ep_iter), simulation_time_max(total_iter), graphics_mode(graphics)
 {
         simulation_time = 0;
@@ -32,8 +33,11 @@ Manager::~Manager()
                 glDeleteLists(box, 1);
 }
 
-void Manager::Init()
+bool Manager::Init()
 {
+        ddpg_conn = ddpg_connect();
+        if (ddpg_conn == -1)
+                return false;
         BuildMap();
         map.Init(obstacles);
         for (size_t i = 0; i < pursuers.Size(); i++)
@@ -41,7 +45,6 @@ void Manager::Init()
         for (size_t i = 0; i < evaders.Size(); i++)
                 agents.Add(evaders[i]);
         InitCollisionArrays();
-        ddpg_conn = ddpg_connect();
         if (graphics_mode) {
                 glNewList(box, GL_COMPILE);
                 evader_spawns.SpawnCompile();
@@ -49,47 +52,71 @@ void Manager::Init()
                 ShowObstacles();
                 glEndList();
         }
+        return true;
 }
 
 void Manager::BuildMap()
 {
-        pursuers.Add(new Pursuer(Vector2d(1100, 900)));
+        pursuers.Add(new Pursuer(Vector2d(1100, 900), blue));
         pursuers.Add(new Pursuer(Vector2d(100, 780)));
-        pursuers.Add(new Pursuer(Vector2d(100, 200)));
+        //pursuers.Add(new Pursuer(Vector2d(100, 200)));
         evaders.Add(new Evader(Vector2d(300, 400)));
 
-        pursuer_spawns.AddSpawn(Vector2d(150, 190));
-        pursuer_spawns.AddSpawn(Vector2d(350, 190));
-
-        pursuer_spawns.AddSpawn(Vector2d(200, 900));
-        pursuer_spawns.AddSpawn(Vector2d(600, 900));
-        pursuer_spawns.AddSpawn(Vector2d(1000, 900));
-
-        pursuer_spawns.AddSpawn(Vector2d(200, 50));
-        pursuer_spawns.AddSpawn(Vector2d(600, 50));
-        pursuer_spawns.AddSpawn(Vector2d(1000, 50));
+        pursuer_spawns.AddSpawn(Vector2d(150, 150));
+        pursuer_spawns.AddSpawn(Vector2d(1005.000000, 801.000000));
+        pursuer_spawns.AddSpawn(Vector2d(143.000000, 819.000000));
+        pursuer_spawns.AddSpawn(Vector2d(1011.000000, 127.000000));
+        pursuer_spawns.AddSpawn(Vector2d(580.000000, 494.000000));
 
 
-        evader_spawns.AddSpawn(Vector2d(500, 450));
 
-        evader_spawns.AddSpawn(Vector2d(300, 400));
+        evader_spawns.AddSpawn(Vector2d(182.000000, 700.000000));
+        evader_spawns.AddSpawn(Vector2d(364.000000, 842.000000));
+        evader_spawns.AddSpawn(Vector2d(321.000000, 686.000000));
+        evader_spawns.AddSpawn(Vector2d(508.000000, 740.000000));
+        evader_spawns.AddSpawn(Vector2d(246.000000, 481.000000));
+        evader_spawns.AddSpawn(Vector2d(500.000000, 593.000000));
+        evader_spawns.AddSpawn(Vector2d(615.000000, 588.000000));
+        evader_spawns.AddSpawn(Vector2d(688.000000, 591.000000));
+        evader_spawns.AddSpawn(Vector2d(715.000000, 471.000000));
+        evader_spawns.AddSpawn(Vector2d(415.000000, 447.000000));
+        evader_spawns.AddSpawn(Vector2d(425.000000, 281.000000));
+        evader_spawns.AddSpawn(Vector2d(592.000000, 273.000000));
+        evader_spawns.AddSpawn(Vector2d(829.000000, 280.000000));
+        evader_spawns.AddSpawn(Vector2d(905.000000, 411.000000));
+        evader_spawns.AddSpawn(Vector2d(1045.000000, 462.000000));
+        evader_spawns.AddSpawn(Vector2d(1026.000000, 346.000000));
+        evader_spawns.AddSpawn(Vector2d(1070.000000, 253.000000));
+        evader_spawns.AddSpawn(Vector2d(983.000000, 192.000000));
+        evader_spawns.AddSpawn(Vector2d(888.000000, 129.000000));
+        evader_spawns.AddSpawn(Vector2d(782.000000, 162.000000));
+        evader_spawns.AddSpawn(Vector2d(850.000000, 256.000000));
+        evader_spawns.AddSpawn(Vector2d(706.000000, 359.000000));
+        evader_spawns.AddSpawn(Vector2d(260.000000, 783.000000));
+        evader_spawns.AddSpawn(Vector2d(88.000000, 585.000000));
+        evader_spawns.AddSpawn(Vector2d(666.000000, 371.000000));
+        evader_spawns.AddSpawn(Vector2d(121.000000, 565.000000));
+
+
+
+        evader_spawns.AddSpawn(Vector2d(560, 450));
 
         evader_spawns.Reset();
         pursuer_spawns.Reset();
+        NewEpisode();
+        // for (int i = 200; i < 1200; i += 400)
+        //         obstacles.Add(new Rectangle(Vector2d(i, 620), red, 100, 200));
+        // for (int i = 400; i < 1200; i += 400)
+        //         obstacles.Add(new Ellipse(Vector2d(i, 820), red, 100, 50));
+        // for (int i = 230; i < 1200; i += 400)
+        //         obstacles.Add(new Rectangle(Vector2d(i, 210), red, 90, 200));
+        // for (int i = 400; i < 1200; i += 400)
+        //         obstacles.Add(new Pentagon(Vector2d(i, 330), red, 50));
+        // for (int i = 400; i < 1200; i += 400)
+        //         obstacles.Add(new Hexagon(Vector2d(i, 600), red, 50));
 
-        for (int i = 200; i < 1200; i += 400)
-                obstacles.Add(new Rectangle(Vector2d(i, 620), red, 100, 200));
-        for (int i = 400; i < 1200; i += 400)
-                obstacles.Add(new Ellipse(Vector2d(i, 820), red, 100, 50));
-        for (int i = 230; i < 1200; i += 400)
-                obstacles.Add(new Rectangle(Vector2d(i, 210), red, 90, 200));
-        for (int i = 400; i < 1200; i += 400)
-                obstacles.Add(new Pentagon(Vector2d(i, 330), red, 50));
-        for (int i = 400; i < 1200; i += 400)
-                obstacles.Add(new Hexagon(Vector2d(i, 600), red, 50));
-
-        for (int i = 50; i < 1200; i += 400)
-                obstacles.Add(new Triangle(Vector2d(i, 200), red, 50)); 
+        // for (int i = 50; i < 1200; i += 400)
+        //         obstacles.Add(new Triangle(Vector2d(i, 200), red, 50)); 
 }
 
 void Manager::Show(bool info)
@@ -144,17 +171,32 @@ double Manager::EvaluateReward(int& done) const
         double reward = 0.0;
         EvalDistances();
         for (size_t i = 0; i < pursuers.Size(); i++) {
-                Vector2d target = evaders[0]->GetXY() - pursuers[i]->GetXY();
-                target.Normalize();
-                if (pursuers[i]->CurrentDirection() * target >= 0.3)
-                        reward += 1.0;
-                else
-                        reward -= 1.0;
-                if (pursuer_distance[i] < 100.0) {
-                        fprintf(stderr, "KKNN!!\n");
+                Vector2d coord = pursuers[i]->GetXY();
+
+                if (pursuer_distance[i] < 80.0) {
+                        fprintf(stderr, "HIT!!!\n");
                         reward = 500.0;
                         done = true;
                         break;
+                }
+                if (pursuer_distance[i] < 100.0)
+                        reward += 0.2;
+                else if (pursuer_distance[i] < 150.0)
+                        reward += 0.15;
+                else if (pursuer_distance[i] < 200.0)
+                        reward += 0.1;
+                else if (pursuer_distance[i] < 250.0)
+                        reward += 0.05;
+        
+                if (pursuer_distance[i] < pursuer_distance_old[i]) {
+                        reward += 0.1;
+                } else {
+                        double gap = 60.0;
+                        if (coord.X() < gap || coord.X() > env_width - gap ||
+                            coord.Y() < gap || coord.Y() > env_height - gap)
+                                reward -= 1.0;
+                        else
+                                reward -= 0.2;
                 }
         }
         return reward;
@@ -165,10 +207,12 @@ void Manager::MakeResponse(ddpg_response *resp) const
         for (size_t i = 0; i < agents.Size(); i++) {
                 Vector2d coord = agents[i]->GetXY();
                 Vector2d dir = agents[i]->CurrentDirection();
-                resp->state[4 * i] = coord.X();
-                resp->state[4 * i + 1] = coord.Y();
-                resp->state[4 * i + 2] = dir.X();
-                resp->state[4 * i + 3] = dir.Y();
+                resp->state[2 * i] = -1.0 + 2.0 * coord.X() / env_width;
+                resp->state[2 * i + 1] = -1.0 + 2.0 * coord.Y() / env_height;
+                // if (i < agents.Size() - 1) {
+                //         resp->state[4 * i + 2] = dir.X();
+                //         resp->state[4 * i + 3] = dir.Y();
+                // }
         }
         resp->done = false;
         resp->reward = EvaluateReward(resp->done);
@@ -197,7 +241,7 @@ void Manager::Sample()
         // for (int i = 0; i < 6; i++)
         //         action_buf.action[i] = 1.0;
         for (size_t i = 0; i < pursuers.Size(); i++)
-                pursuers[i]->Update(map, Vector2d(action_buf.action[i], action_buf.action[i+1]));
+                pursuers[i]->Update(map, Vector2d(action_buf.action[2*i], action_buf.action[2*i+1]));
         for (size_t i = 0; i < evaders.Size(); i++)
                 evaders[i]->Runaway(map, pursuers);
         CheckCollision();

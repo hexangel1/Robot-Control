@@ -28,6 +28,8 @@ class Manager {
 
         unsigned int episode_iter;
         unsigned int simulation_time;
+        const unsigned int env_width;
+        const unsigned int env_height;
         const unsigned int episode_iter_max;
         const unsigned int simulation_time_max;
         bool graphics_mode;
@@ -35,7 +37,7 @@ public:
         Manager(int width, int height, unsigned int ep_iter, unsigned int total_iter,
                 bool graphics);
         ~Manager();
-        void Init();
+        bool Init();
         void Sample();
         void Show(bool info);
         bool Finished() const { return simulation_time >= simulation_time_max; }

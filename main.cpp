@@ -59,6 +59,9 @@ static void mouse_clicked(GLFWwindow *window, int button, int action, int mode)
 {
         if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
                 Input.mouse_captured = !Input.mouse_captured;
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+                fprintf(stderr, "        evader_spawns.AddSpawn(Vector2d(%lf, %lf));\n",
+                        Input.last_x, window_height - Input.last_y);
         if (Input.mouse_captured){
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 Input.captured_now = true;
@@ -188,7 +191,11 @@ static void main_loop(unsigned long T, unsigned int ep, bool graphics_mode)
         }
 
         Manager Model(window_width, window_height, ep, T, graphics_mode);
-        Model.Init();
+        bool ok = Model.Init();
+        if (!ok) {
+                fprintf(stderr, "Failed to initialize model\n");
+                return;
+        }
         if (graphics_mode) {
                 graphics_simulation(window, Model);
         } else {
