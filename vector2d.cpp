@@ -163,9 +163,7 @@ bool operator<(const Vector2d& v1, const Vector2d& v2)
 
 Vector2d Vector2d::Direction(double phi)
 {
-        Vector2d ret(1.0, 0.0);
-        ret.Rotate(phi);
-        return ret;
+        return Vector2d(cos(phi), sin(phi));
 }
 
 Vector2d Vector2d::Bis(const Vector2d& v1, const Vector2d& v2)
