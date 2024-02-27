@@ -5,8 +5,8 @@
 
 class Pursuer : public Vehicle {
 public:
-        Pursuer(const Vector2d& coord)
-                : Vehicle(coord, Vehicle::master_max_speed, red) {}
+        Pursuer(const Vector2d& coord, int color = red)
+                : Vehicle(coord, Vehicle::master_max_speed, color) {}
 };
 
 class Evader : public Vehicle {
