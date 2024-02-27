@@ -3,8 +3,35 @@
 #include <unistd.h>
 #include <sys/un.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <fcntl.h>
 #include "ddpg.hpp"
+
+static int accept_with_timeout(int listenfd, int timeout_ms)
+{
+        int sockfd, res;
+        fd_set readfds;
+        struct timeval tv;
+        FD_ZERO(&readfds);
+        FD_SET(listenfd, &readfds);
+        tv.tv_sec = timeout_ms / 1000;
+        tv.tv_usec = (timeout_ms % 1000) * 1000;
+        res = select(listenfd + 1, &readfds, NULL, NULL, &tv);
+        if (res == -1) {
+                perror("select");
+                return -1;
+        }
+        if (res == 0) {
+                fprintf(stderr, "accept: connect timeout\n");
+                return -1;
+        }
+        sockfd = accept(listenfd, NULL, NULL);
+        if (sockfd == -1) {
+                perror("accept");
+                return -1;
+        }
+        return sockfd;
+}
 
 int ddpg_connect()
 {
@@ -18,6 +45,7 @@ int ddpg_connect()
                 perror("socket");
                 return -1;
         }
+        unlink(sock_path);
         res = bind(sockfd, (struct sockaddr *)&addr, sizeof(addr));
         if (res == -1) {
                 perror("bind");
@@ -28,14 +56,9 @@ int ddpg_connect()
                 perror("listen");
                 return -1;
         }
-        ddpg_conn = accept(sockfd, NULL, NULL);
-        if (ddpg_conn == -1) {
-                perror("accept");
-                return -1;
-        }
+        ddpg_conn = accept_with_timeout(sockfd, 2500);
         shutdown(sockfd, 2);
         close(sockfd);
-        unlink(sock_path);
         return ddpg_conn;
 }
 

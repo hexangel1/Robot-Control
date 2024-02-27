@@ -1,7 +1,7 @@
 #ifndef DDPG_HPP_SENTRY
 #define DDPG_HPP_SENTRY
 
-#define PURSUADERS_AMOUNT 3
+#define PURSUADERS_AMOUNT 2
 #define EVADERS_AMOUNT 1
 
 #pragma pack(push, 1)
@@ -10,7 +10,7 @@ struct ddpg_action {
 };
 
 struct ddpg_response {
-        double state[(PURSUADERS_AMOUNT + EVADERS_AMOUNT) * 4];
+        double state[PURSUADERS_AMOUNT * 2 + EVADERS_AMOUNT * 2];
         double reward;
         int done;
 };
