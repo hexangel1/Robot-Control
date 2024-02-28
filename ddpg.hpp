@@ -16,7 +16,7 @@ struct ddpg_response {
 };
 #pragma pack(pop)
 
-int ddpg_connect();
+int ddpg_connect(int timeout);
 
 void get_action(int ddpg_conn, ddpg_action *action_buf);
 

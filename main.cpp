@@ -179,7 +179,7 @@ static void graphics_simulation(GLFWwindow *window, Manager& Model)
         glfwTerminate();
 }
 
-static void main_loop(unsigned long T, unsigned int ep, bool graphics_mode)
+static void main_loop(unsigned long T, unsigned int ep, unsigned int timeout, bool graphics_mode)
 {
         GLFWwindow *window = 0;
         if (graphics_mode) {
@@ -191,7 +191,7 @@ static void main_loop(unsigned long T, unsigned int ep, bool graphics_mode)
         }
 
         Manager Model(window_width, window_height, ep, T, graphics_mode);
-        bool ok = Model.Init();
+        bool ok = Model.Init(timeout);
         if (!ok) {
                 fprintf(stderr, "Failed to initialize model\n");
                 return;
@@ -208,13 +208,14 @@ static bool graphics_mode = false;
 static unsigned int max_iterations = 500000;
 static unsigned int episode_length = 500;
 static unsigned int random_seed = 42;
+static int connect_timeout = -1;
 
 int get_command_line_options(int argc, char **argv)
 {
     int opt, retval = 0;
     extern char *optarg;
     extern int optopt;
-    while ((opt = getopt(argc, argv, ":hgt:e:s:")) != -1) {
+    while ((opt = getopt(argc, argv, ":hgt:e:s:x:")) != -1) {
         switch (opt) {
         case 'h':
             retval = -1;
@@ -230,6 +231,9 @@ int get_command_line_options(int argc, char **argv)
             break;
         case 's':
             random_seed = atoi(optarg);
+            break;
+        case 'x':
+            connect_timeout = atoi(optarg);
             break;
         case ':':
             fprintf(stderr, "Opt -%c require an operand\n", optopt);
@@ -252,6 +256,6 @@ int main(int argc, char **argv)
                 srand(random_seed);
         else
                 srand(time(0));
-        main_loop(max_iterations, episode_length, graphics_mode);
+        main_loop(max_iterations, episode_length, connect_timeout, graphics_mode);
         return 0;
 }

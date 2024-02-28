@@ -11,12 +11,15 @@ static int accept_with_timeout(int listenfd, int timeout_ms)
 {
         int sockfd, res;
         fd_set readfds;
-        struct timeval tv;
+        struct timeval tv, *timeout = NULL;
+        if (timeout_ms != -1) {
+                tv.tv_sec = timeout_ms / 1000;
+                tv.tv_usec = (timeout_ms % 1000) * 1000;
+                timeout = &tv;
+        }
         FD_ZERO(&readfds);
         FD_SET(listenfd, &readfds);
-        tv.tv_sec = timeout_ms / 1000;
-        tv.tv_usec = (timeout_ms % 1000) * 1000;
-        res = select(listenfd + 1, &readfds, NULL, NULL, &tv);
+        res = select(listenfd + 1, &readfds, NULL, NULL, timeout);
         if (res == -1) {
                 perror("select");
                 return -1;
@@ -33,7 +36,7 @@ static int accept_with_timeout(int listenfd, int timeout_ms)
         return sockfd;
 }
 
-int ddpg_connect()
+int ddpg_connect(int timeout)
 {
         int sockfd, ddpg_conn, res;
         const char *sock_path = "./ddpg-bridge.sock";
@@ -56,7 +59,7 @@ int ddpg_connect()
                 perror("listen");
                 return -1;
         }
-        ddpg_conn = accept_with_timeout(sockfd, 2500);
+        ddpg_conn = accept_with_timeout(sockfd, timeout);
         shutdown(sockfd, 2);
         close(sockfd);
         return ddpg_conn;

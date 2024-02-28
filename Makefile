@@ -27,7 +27,7 @@ run: $(PROJECT)
 	./$(PROJECT)
 
 graphic_run: $(PROJECT)
-	./$(PROJECT) -g
+	./$(PROJECT) -g -x 2500
 
 memcheck: $(PROJECT)
 	valgrind -s --leak-check=full ./$(PROJECT)

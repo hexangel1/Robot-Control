@@ -37,7 +37,7 @@ public:
         Manager(int width, int height, unsigned int ep_iter, unsigned int total_iter,
                 bool graphics);
         ~Manager();
-        bool Init();
+        bool Init(int timeout);
         void Sample();
         void Show(bool info);
         bool Finished() const { return simulation_time >= simulation_time_max; }

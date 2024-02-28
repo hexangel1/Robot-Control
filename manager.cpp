@@ -33,9 +33,9 @@ Manager::~Manager()
                 glDeleteLists(box, 1);
 }
 
-bool Manager::Init()
+bool Manager::Init(int timeout)
 {
-        ddpg_conn = ddpg_connect();
+        ddpg_conn = ddpg_connect(timeout);
         if (ddpg_conn == -1)
                 return false;
         BuildMap();
@@ -175,7 +175,7 @@ double Manager::EvaluateReward(int& done) const
 
                 if (pursuer_distance[i] < 80.0) {
                         fprintf(stderr, "HIT!!!\n");
-                        reward = 500.0;
+                        reward = 10.0;
                         done = true;
                         break;
                 }
@@ -209,10 +209,6 @@ void Manager::MakeResponse(ddpg_response *resp) const
                 Vector2d dir = agents[i]->CurrentDirection();
                 resp->state[2 * i] = -1.0 + 2.0 * coord.X() / env_width;
                 resp->state[2 * i + 1] = -1.0 + 2.0 * coord.Y() / env_height;
-                // if (i < agents.Size() - 1) {
-                //         resp->state[4 * i + 2] = dir.X();
-                //         resp->state[4 * i + 3] = dir.Y();
-                // }
         }
         resp->done = false;
         resp->reward = EvaluateReward(resp->done);
@@ -238,8 +234,6 @@ void Manager::Sample()
         }
         ddpg_action action_buf;
         get_action(ddpg_conn, &action_buf);
-        // for (int i = 0; i < 6; i++)
-        //         action_buf.action[i] = 1.0;
         for (size_t i = 0; i < pursuers.Size(); i++)
                 pursuers[i]->Update(map, Vector2d(action_buf.action[2*i], action_buf.action[2*i+1]));
         for (size_t i = 0; i < evaders.Size(); i++)
